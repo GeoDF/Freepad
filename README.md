@@ -1,2 +1,2 @@
 # Freepad
-Free editor for midi pad
+Free editor for midi pad Akai LPD8
