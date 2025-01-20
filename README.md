@@ -15,7 +15,7 @@ Features:
 IMPORTANT NOTES: the LPD8 pad device have 4 programs, and the computer is not advised when you change the program used on your LPD8 with its "Program" button. Then, Freepad cannot guess anymore which pad or knob send which note or control change message. In the same way, when you change the note associated to a pad in Freepad, you loose the synchornisation with the LPD8 until you press "Send" or "Send to RAM".
 And if you set the same note for two or more pads or the same control change to two or more knobs, Freepad cannot guess which pad or knob is used. 
 In such cases, a warning message is briefly displayed.
-Sending a program to the LPD8 or getting one restore the synchronisation.
+Sending a program to the LPD8, getting one, or loading a program from your computer restore the synchronisation.
 
 The LPD8 MK2 is NOT SUPPORTED yet. 
 
