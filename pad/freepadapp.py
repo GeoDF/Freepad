@@ -128,12 +128,18 @@ class FreepadApp(QApplication):
 			self.openedPads[mn].show()
 
 	def devicePlugged(self, midiports):
+		in_midiname = midiports['in'][0]
+		out_midiname = midiports['out'][0]
 		for mn in self.openedPads:
-			self.openedPads[mn].plugged(midiports)
+			if mn == Mid.shortMidiName(in_midiname):
+				self.openedPads[mn].plugged(in_midiname, out_midiname)
 
 	def deviceUnplugged(self, midiports):
+		in_midiname = midiports['in'][0]
+		out_midiname = midiports['out'][0]
 		for mn in self.openedPads:
-			self.openedPads[mn].unplugged(midiports)
+			if mn == Mid.shortMidiName(in_midiname):
+				self.openedPads[mn].unplugged(in_midiname, out_midiname)
 
 
 	def cleanExit(self):

@@ -403,15 +403,12 @@ class FreepadWindow(QWidget):
 			self.padProgramChanges = []
 			self.padControlChanges = []
 
-	def plugged(self, midiports):
-		in_midiname = midiports['in'][0]
-		out_midiname = midiports['out'][0]
+	def plugged(self, in_midiname, out_midiname):
 		self.io.openDevicePorts(in_midiname, out_midiname)
 		if self.io.isConnected:
 			self.ui.setEnabled(True)
-
-		self.ui.retranslateUi()
-		self.getProgram('1') # LPD8 switch to program 4 when disconnected/connected again
+			self.ui.retranslateUi()
+			self.getProgram('1') # LPD8 switch to program 4 when disconnected/connected again
 
 		# self.settings.setValue('dontShowAgainReconnectionWarning', False) # used only for debug
 		if not self.settings.value('dontShowAgainReconnectionWarning', False):
@@ -424,7 +421,7 @@ class FreepadWindow(QWidget):
 			if cb.checkState() == 2:
 				self.settings.setValue('dontShowAgainReconnectionWarning', True)
 
-	def unplugged(self, midiports):
+	def unplugged(self, in_midiname, out_midiname):
 		self.io.closeDevicePorts()
 		self.ui.retranslateUi()
 		self.ui.setEnabled(False)
