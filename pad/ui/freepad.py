@@ -8,7 +8,7 @@ from qtpy.QtGui import QKeyEvent
 
 from pad.path import FREEPAD_PATH
 from pad.ui.common import Creator, PadException
-from pad.ui.controls import * # wild import as placeholder for new controls
+from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
 from pad.padio import PadIO
 
@@ -147,7 +147,7 @@ class FreepadWindow(QWidget):
 				self._loadProgram(filename)
 
 		except Exception as e:
-			print('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
+			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
 
 	def _loadProgram(self, filename):
 		try:
@@ -162,7 +162,7 @@ class FreepadWindow(QWidget):
 						if ctl is not False:
 							ctl.cbName.lineEdit().setText(pkName)
 				except Exception as e:
-					print("Error while reading names from backup: " + str(e))
+					self.cprint("Error while reading names from backup: " + str(e))
 				fp.close()
 				self.setProgram(pgm)
 				if self.io.isConnected:
@@ -170,7 +170,7 @@ class FreepadWindow(QWidget):
 				self.unselPrograms()
 
 		except Exception as e:
-			print('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
+			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
 
 	def saveProgram(self, event):
 		try:
@@ -180,7 +180,7 @@ class FreepadWindow(QWidget):
 						json.dump([self.program()[1:], self.pkNames()], fp)
 						fp.close()
 		except Exception as e:
-			print('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
+			self.cprint('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
 
 	def pkNames(self):
 		pkn = []
@@ -210,16 +210,22 @@ class FreepadWindow(QWidget):
 		elif mtype == "sysex":
 			self._midiSysex(m[1])
 		else:
-			print("Received midi message of unknown type " + mtype)
+			self.warning("Received midi message of unknown type " + mtype)
 		if self.ui.showMidiMessages:
 			self.ui.statusbar.showMessage(msg[0:-7]) # without "time=0"
 
 	def warning(self, msg, detail =''):
 		self.ui.lblAlert.setText(msg + '.')
-		print(msg + detail)
+		self.cprint(msg + detail)
 		QTimer.singleShot(4000, lambda: self.ui.lblAlert.setText(''))
-	
+
+	def cprint(self, msg):
+		if True: # future conditionnal debug mode
+			print(msg)
+
 	def _padFromNote(self, note):
+		if not 'program' in self.io.pad:
+			return 0
 		if len(self.padNotes) == 0:
 			for i in range(0, len(self.io.pad["program"])):
 				try:
@@ -309,7 +315,7 @@ class FreepadWindow(QWidget):
 
 	def _midiSysex(self, data):
 		data = data[6: -1].split(",")
-		print('Received ' + str(data))
+		self.cprint('Received ' + str(data))
 		self.setProgram(data[len(self.io.pad["get_program"].split(",")) - 1:])
 
 
@@ -327,8 +333,10 @@ class FreepadWindow(QWidget):
 						ctl.setValue(int(value))
 					elif isinstance(ctl, QComboBox):
 						ctl.setCurrentIndex(int(value))
+					elif isinstance(ctl, QPushButton):
+						print('_setValue: to do for QPushButton ...')
 		except Exception as e:
-			print("Unable to set " + ctlname +" = " + str(value))
+			self.cprint("Unable to set " + ctlname +" = " + str(value))
 
 	def _getValue(self, ctlname):
 		val = None
@@ -421,7 +429,7 @@ class FreepadWindow(QWidget):
 			if cb.checkState() == 2:
 				self.settings.setValue('dontShowAgainReconnectionWarning', True)
 
-	def unplugged(self, in_midiname, out_midiname):
+	def unplugged(self):
 		self.io.closeDevicePorts()
 		self.ui.retranslateUi()
 		self.ui.setEnabled(False)
@@ -510,9 +518,10 @@ class Ui_Pads(Creator, QWidget):
 				spad = str(pad)
 				ctlType = spad.rstrip("0123456789")
 				ctlNum = spad[len(ctlType):]
-				if ctlType == "p":
+				if ctlType in ['p', 'pc']:
 					ctlClass = Pad(ctlNum, self.settings)
-					params = {"bordColor" : "#882100", "bordColorOn" : "#ff2800", "kit": kit}
+					params = {"bordColorOff" : "#882100", "bordColorOn" : "#ff2800", "kit": kit}
+					params['rgb'] = (ctlType == 'pc')
 					ctlClass.sendNoteOn.connect(lambda note: self.parent().io.sendNoteOn(self.mc.currentIndex(), note))
 					ctlClass.sendNoteOff.connect(lambda note: self.parent().io.sendNoteOff(self.mc.currentIndex(), note))
 				elif ctlType == "k":

@@ -1,5 +1,5 @@
 from qtpy.QtCore import QCoreApplication, QMetaObject, Qt, Signal
-from qtpy.QtWidgets import QComboBox, QFrame, QGraphicsDropShadowEffect, QHBoxLayout, \
+from qtpy.QtWidgets import QColorDialog, QComboBox, QFrame, QGraphicsDropShadowEffect, QHBoxLayout, \
 		QPushButton, QVBoxLayout, QWidget
 from qtpy.QtGui import QColor
 
@@ -15,6 +15,9 @@ class Pad(QWidget, Creator):
 		self.note = 0
 		self.noteStyle = int(settings.value('noteStyle', 1))
 		self.kit = {}
+		self.bordColorOff = "#882100"
+		self.bordColorOn = "#ff2800"
+		self.rgb = False
 
 	def sizeHint(self):
 		return self.minimumSize()
@@ -23,20 +26,12 @@ class Pad(QWidget, Creator):
 		if not self.objectName():
 			self.setObjectName("Pad")
 
-		if "bordColor" in params:
-			self.bordColor = params["bordColor"]
-		else:
-			self.bordColor = "#882100"
-		if "bordColorOn" in params:
-			self.bordColorOn = params["bordColorOn"]
-		else:
-			self.bordColorOn = "#ff2800"
-
-		if 'kit' in params:
-			self.kit = params['kit']
+		for p in ['bordColorOff', 'bordColorOn', 'kit', 'rgb']:
+			if p in params:
+				setattr(self, p, params[p])
 
 		self.setStyleSheet("Pad #padLW {"
-"border: 1px solid " + self.bordColor + "; border-radius: 5px;"
+"border: 1px solid " + self.bordColorOff + "; border-radius: 5px;"
 "}"
 "Pad #cbName {"
 "background: transparent;"
@@ -69,11 +64,22 @@ class Pad(QWidget, Creator):
 		self.verticalLayout.addWidget(self.cbName)
 
 		self.btnNoteHL = QHBoxLayout()
-		self.btnNote = QPushButton()
-		self.btnNote.setObjectName(u"btnNote")
+		if self.rgb:
+			btnOff = self.createObj("pc" + self.padTitle + "_coff", QPushButton())
+			btnOff.setMaximumSize(12, 12)
+			btnOff.setStyleSheet('background-color: ' + self.bordColorOff + ';')
+			btnOff.clicked.connect(lambda e: self.chooseColor('Off'))
+			btnOn = self.createObj("pc" + self.padTitle + "_con", QPushButton())
+			self.btnNoteHL.addWidget(btnOff, Qt.AlignmentFlag.AlignLeft)
+			btnOn.setMaximumSize(12, 12)
+			btnOn.setStyleSheet('background-color: ' + self.bordColorOn + ';')
+			btnOn.clicked.connect(lambda e: self.chooseColor('On'))
+		self.createObj(u"btnNote", QPushButton())
 		self.btnNote.setStyleSheet("margin: 0; padding: 3px; border-radius: 3px;")
 		self.btnNote.setMaximumWidth(60)
 		self.btnNoteHL.addWidget(self.btnNote, Qt.AlignmentFlag.AlignCenter)
+		if self.rgb:
+			self.btnNoteHL.addWidget(btnOn, Qt.AlignmentFlag.AlignRight)
 		self.verticalLayout.addLayout(self.btnNoteHL)
 
 		self.spNote = Spinput()
@@ -128,7 +134,7 @@ class Pad(QWidget, Creator):
 
 	def lightOn(self):
 		try:
-			self.padLW.setStyleSheet("#layout_widget {border-color: " + self.bordColorOn + ";}")
+			self.padLW.setStyleSheet("#padLW {border-color: " + self.bordColorOn + ";}")
 			shadow = QGraphicsDropShadowEffect()
 			shadow.setColor(QColor(self.bordColorOn))
 			shadow.setOffset(1, 1)
@@ -139,7 +145,7 @@ class Pad(QWidget, Creator):
 
 	def lightOff(self):
 		try:
-			self.padLW.setStyleSheet("#layout_widget {border-color: " + self.bordColor + ";}")
+			self.padLW.setStyleSheet("#padLW {border-color: " + self.bordColorOff + ";}")
 			self.setGraphicsEffect(None)
 		except:
 			pass
@@ -151,4 +157,13 @@ class Pad(QWidget, Creator):
 	def _sendNoteOff(self):
 		self.sendNoteOff.emit(self.note)
 		self.lightOff()
+
+	def chooseColor(self, col):
+		print('chooseColor ' + col)
+		color = QColorDialog.getColor()
+		btn = getattr(self, "pc" + self.padTitle + "_c" + col.lower())
+		btn.setStyleSheet('background-color: ' + color.name() + ';')
+		setattr(self, 'bordColor' + col, color.name())
+		print('bordColor' + col + ' : ' + color.name())
+
 

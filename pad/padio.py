@@ -102,12 +102,15 @@ class PadIO(QObject):
 
 	# Reuest for the program n° nb. Response read by MidiListener and received by ui
 	def getProgram(self, nb):
-		data = self.pad["get_program"].replace('pid', str(nb)).split(",")
-		data = [int(h, 16) for h in data]
 		try:
-			self.out_port.send(mido.Message("sysex", data = data))
-		except:
-			print("Unable to request program " + str(nb))
+			data = self.pad['get_program'].replace('pid', str(nb)).split(",")
+			data = [int(h, 16) for h in data]
+		except Exception as e:
+			print('Bad "get_program" value in the JSON file: ' + str(e))
+		try:
+			self.out_port.send(mido.Message('sysex', data = data))
+		except Exception as e:
+			print('Unable to request program ' + str(nb) + ': ' + str(e))
 
 	def sendProgram(self, pid, program):
 		data = self.pad["send_program"].replace('pid', str(pid)).split(",")
