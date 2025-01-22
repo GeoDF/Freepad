@@ -522,11 +522,11 @@ class Ui_Pads(Creator, QWidget):
 					ctlClass = Pad(ctlNum, self.settings)
 					params = {"bordColorOff" : "#882100", "bordColorOn" : "#ff2800", "kit": kit}
 					params['rgb'] = (ctlType == 'pc')
-					ctlClass.sendNoteOn.connect(lambda note: self.parent().io.sendNoteOn(self.mc.currentIndex(), note))
-					ctlClass.sendNoteOff.connect(lambda note: self.parent().io.sendNoteOff(self.mc.currentIndex(), note))
+					ctlClass.sendNoteOn.connect(self._sendNoteOn)
+					ctlClass.sendNoteOff.connect(self._sendNoteOff)
 				elif ctlType == "k":
 					ctlClass = Knob(ctlNum)
-					ctlClass.sendControlChanged.connect(lambda cc, val: self.parent().io.sendControlChanged(self.mc.currentIndex(), cc, val))
+					ctlClass.sendControlChanged.connect(self._sendControlChanged)
 					params = {"controls": controls}
 				ctl = Creator.createObj(self.gLayoutd, ctlType + ctlNum, ctlClass)
 				ctl.setupUi(params)
@@ -591,6 +591,20 @@ class Ui_Pads(Creator, QWidget):
 		dialog.setupUi(self.parent().midiname)
 		dialog.exec()
 
+	def _sendNoteOn(self, mc, note):
+		if mc == 9999:
+			mc = self.mc.currentIndex()
+		self.parent().io.sendNoteOn(mc, note)
+
+	def _sendNoteOff(self, mc, note):
+		if mc == 9999:
+			mc = self.mc.currentIndex()
+		self.parent().io.sendNoteOff(mc, note)
+
+	def _sendControlChanged(self, mc, cc, val):
+		if mc == 9999:
+			mc = self.mc.currentIndex()
+		self.parent().io.sendControlChanged(mc, cc, val)
 
 # TODO : map keybord on pad. This will probably won't work. May be we need to capture keyboard events and test
 # its to fire pads when no input control have focus

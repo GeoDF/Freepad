@@ -121,10 +121,12 @@ class PadIO(QObject):
 		print("PadIO.sentProgram(" + str(program) + ")")
 
 	def sendNoteOn(self, channel, note):
-		self.sendNoteMessage(channel, note, "on")
+		if channel in range(0,16) and note in range(0,128):
+			self.sendNoteMessage(channel, note, "on")
 
 	def sendNoteOff(self, channel, note):
-		self.sendNoteMessage(channel, note, "off")
+		if channel in range(0,16) and note in range(0,128):
+			self.sendNoteMessage(channel, note, "off")
 
 	def sendNoteMessage(self, channel, note, msg):
 		if self.mtout_port is not None:

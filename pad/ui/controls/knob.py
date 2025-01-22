@@ -5,12 +5,13 @@ from qtpy.QtGui import QBrush, QColor, QRadialGradient, QPainter, QPen
 from pad.ui.common import Creator, Spinput
 
 class Knob(QWidget, Creator):
-	sendControlChanged = Signal(int, int)
+	sendControlChanged = Signal(int, int, int)
 	
 	def __init__(self, title, parent = None):
 		super().__init__(parent)
 		self.kTitle = title
 		self.controls = {}
+		self.mc = 9999
 
 	def sizeHint(self):
 		return self.minimumSize()
@@ -67,7 +68,7 @@ class Knob(QWidget, Creator):
 		self.retranslateUi(Knob)
 		
 		self.cbName.currentIndexChanged.connect(self.ccChanged)
-		self.pot.valueChanged.connect(lambda v: self.sendControlChanged.emit(self.spCC.value(), v))
+		self.pot.valueChanged.connect(lambda v: self.sendControlChanged.emit(self.mc, self.spCC.value(), v))
 		QMetaObject.connectSlotsByName(self)
 
 	def retranslateUi(self, Knob):
@@ -78,7 +79,6 @@ class Knob(QWidget, Creator):
 		self.pot.setValue(int(val))
 
 	def ccChanged(self, index):
-		print(str(index))
 		if index > 0:
 			ccn = self.cbName.itemText(index)
 			cc = [cc for cc, i in self.controls.items() if i == ccn][0]

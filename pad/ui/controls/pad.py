@@ -6,8 +6,8 @@ from qtpy.QtGui import QColor
 from pad.ui.common import Creator, Spinput
 
 class Pad(QWidget, Creator):
-	sendNoteOn = Signal(int)
-	sendNoteOff = Signal(int)
+	sendNoteOn = Signal(int, int)
+	sendNoteOff = Signal(int, int)
 
 	def __init__(self, title, settings, parent = None):
 		super().__init__(parent)
@@ -18,6 +18,8 @@ class Pad(QWidget, Creator):
 		self.bordColorOff = "#882100"
 		self.bordColorOn = "#ff2800"
 		self.rgb = False
+		self.mc = 9999
+
 
 	def sizeHint(self):
 		return self.minimumSize()
@@ -26,7 +28,7 @@ class Pad(QWidget, Creator):
 		if not self.objectName():
 			self.setObjectName("Pad")
 
-		for p in ['bordColorOff', 'bordColorOn', 'kit', 'rgb']:
+		for p in ['bordColorOff', 'bordColorOn', 'kit', 'rgb', 'mc']:
 			if p in params:
 				setattr(self, p, params[p])
 
@@ -151,19 +153,17 @@ class Pad(QWidget, Creator):
 			pass
 
 	def _sendNoteOn(self):
-		self.sendNoteOn.emit(self.note)
+		self.sendNoteOn.emit(self.mc, self.note)
 		self.lightOn()
 
 	def _sendNoteOff(self):
-		self.sendNoteOff.emit(self.note)
+		self.sendNoteOff.emit(self.mc, self.note)
 		self.lightOff()
 
 	def chooseColor(self, col):
-		print('chooseColor ' + col)
 		color = QColorDialog.getColor()
 		btn = getattr(self, "pc" + self.padTitle + "_c" + col.lower())
 		btn.setStyleSheet('background-color: ' + color.name() + ';')
 		setattr(self, 'bordColor' + col, color.name())
-		print('bordColor' + col + ' : ' + color.name())
 
 
