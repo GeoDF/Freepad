@@ -1,6 +1,5 @@
 {
 	"midiname": "LPD8 MK2",
-	"manufid": "0x47",	
 	"layout": [
 		["pc5","pc6","pc7","pc8","k1","k2","k3","k4"],
 		["pc1","pc2","pc3","pc4","k5","k6","k7","k8"]

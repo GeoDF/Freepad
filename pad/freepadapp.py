@@ -136,7 +136,7 @@ class FreepadApp(QApplication):
 
 	def deviceUnplugged(self, midiports):
 		in_midiname = midiports['in'][0]
-		out_midiname = midiports['out'][0]
+		#out_midiname = midiports['out'][0]
 		for mn in self.openedPads:
 			if mn == Mid.shortMidiName(in_midiname):
 				self.openedPads[mn].unplugged()

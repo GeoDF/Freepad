@@ -347,11 +347,6 @@ class FreepadWindow(QWidget):
 				val = ctl.value()
 			elif isinstance(ctl, QComboBox):
 				val = ctl.currentIndex()
-		elif ctlname == "manufid" and "manufid" in self.io.pad:
-			try:
-				val = int(self.io.pad["manufid"], 16)
-			except:
-				pass
 		return val
 
 	def closeEvent(self, event):
