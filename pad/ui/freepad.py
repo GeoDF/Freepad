@@ -4,7 +4,7 @@ from qtpy.QtCore import QCoreApplication, QDir, QMetaObject, Qt, QTimer
 from qtpy.QtWidgets import QCheckBox, QComboBox, QFileDialog, QGridLayout, \
 	QHBoxLayout, QLabel, QLayout, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QStatusBar, QSpinBox, \
 	QStyle, QVBoxLayout, QWidget
-from qtpy.QtGui import QKeyEvent
+from qtpy.QtGui import QIcon, QKeyEvent
 
 from pad.path import FREEPAD_PATH
 from pad.ui.common import Creator, PadException
@@ -15,6 +15,8 @@ from pad.padio import PadIO
 class FreepadWindow(QWidget):
 	def __init__(self, params):
 		super().__init__()
+		print(str(FREEPAD_PATH.joinpath('ui').joinpath('img').joinpath('djembe.png')))
+		self.setWindowIcon(QIcon(str(FREEPAD_PATH.joinpath('ui').joinpath('img').joinpath('djembe.png'))))
 		self.setAttribute(Qt.WA_DeleteOnClose)
 		self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 		for p in ['device', 'in_name', 'defaultKit', 'defaultControls', 'settings', 'debug']:
