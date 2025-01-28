@@ -17,18 +17,16 @@ class Pad(QWidget, Creator):
 		self.kit = {}
 		self.bordColorOff = "#882100"
 		self.bordColorOn = "#ff2800"
+		self.bv = False
 		self.rgb = False
-		self.mc = 9999
-
-
-	def sizeHint(self):
-		return self.minimumSize()
+		self.mc = 16
+		self.noteString = [
+			["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
+			[u"Do", u"Do#", u"Ré", u"Ré#", u"Mi", u"Fa", u"Fa#", u"Sol", u"Sol#", u"La", u"La#", u"Si",]
+		]
 
 	def setupUi(self, params):
-		if not self.objectName():
-			self.setObjectName("Pad")
-
-		for p in ['bordColorOff', 'bordColorOn', 'kit', 'rgb', 'mc']:
+		for p in ['bordColorOff', 'bordColorOn', 'kit', 'rgb', 'bv', 'mc']:
 			if p in params:
 				setattr(self, p, params[p])
 
@@ -44,9 +42,6 @@ class Pad(QWidget, Creator):
 "}"
 )
 
-		self.setMinimumSize(120, 175)
-
-		self.padLW = QFrame(self)
 		self.createObj(u"padLW", QFrame(self))
 		self.padLW.setFrameStyle(QFrame.StyledPanel)
 
@@ -96,28 +91,44 @@ class Pad(QWidget, Creator):
 		self.spPC.setupUi("p" + self.padTitle + "_pc", QCoreApplication.translate("Pad", u"PC", None))
 		self.verticalLayout.addWidget(self.spPC)
 
-		self.cbBehavior = QComboBox(self.padLW)
-		self.cbBehavior.addItem("")
-		self.cbBehavior.addItem("")
-		self.cbBehavior.setObjectName("p" + self.padTitle + "_b")
-		self.verticalLayout.addWidget(self.cbBehavior)
+		if self.bv:
+			self.cbBehavior = self.createObj("p" + self.padTitle + "_b", QComboBox(self.padLW))
+			self.cbBehavior.addItem("")
+			self.cbBehavior.addItem("")
+			self.cbBehavior.currentIndexChanged.connect(self.valueChanged)
+			self.verticalLayout.addWidget(self.cbBehavior)
+
+		if self.mc < 16:
+			self.cbMC = self.createObj("p" + self.padTitle + "_mc", QComboBox(self.padLW))
+			for ch in range(1,17):
+				sp = "  " if ch < 10 else ""
+				self.cbMC.addItem(sp + str(ch))
+			self.cbMC.addItem("Global")
+			self.cbMC.setCurrentIndex(16)
+			self.mc = 16
+			self.cbMC.currentIndexChanged.connect(self.mcChanged)
+			self.verticalLayout.addWidget(self.cbMC)
+
+		self.setFixedSize(self.padLW.sizeHint())
+
 		self.retranslateUi()
 
 		self.cbName.currentIndexChanged.connect(self.instrumentChanged)
 		self.spNote.valueChanged.connect(self.noteChanged)
 		self.spCC.valueChanged.connect(self.valueChanged)
 		self.spPC.valueChanged.connect(self.valueChanged)
-		self.cbBehavior.currentIndexChanged.connect(self.valueChanged)
 
 		self.btnNote.pressed.connect(self._sendNoteOn)
 		self.btnNote.released.connect(self._sendNoteOff)
 
 		QMetaObject.connectSlotsByName(self)
+		self.noteChanged(0)
 		# setupUi
 
 	def retranslateUi(self):
-		self.cbBehavior.setItemText(0, QCoreApplication.translate("Pad", u"Tap", None))
-		self.cbBehavior.setItemText(1, QCoreApplication.translate("Pad", u"Toggle", None))
+		if self.bv:
+			self.cbBehavior.setItemText(0, QCoreApplication.translate("Pad", u"Tap", None))
+			self.cbBehavior.setItemText(1, QCoreApplication.translate("Pad", u"Toggle", None))
 
 	def instrumentChanged(self, index):
 		if index > 0:
@@ -127,12 +138,16 @@ class Pad(QWidget, Creator):
 
 	def noteChanged(self, value):
 		octave = int(value / 12) - 1
-		self.btnNote.setText(str(self.parent().noteString[self.noteStyle][value % 12]) + " " + str(octave))
+		self.btnNote.setText(str(self.noteString[self.noteStyle][value % 12]) + " " + str(octave))
 		self.note = value
 		self.valueChanged()
 
+	def mcChanged(self, index):
+		self.mc = index
+
 	def valueChanged(self):
-		self.parent().unselPrograms()
+		if self.parent() is not None:
+			self.parent().unselPrograms()
 
 	def lightOn(self):
 		try:
@@ -165,5 +180,7 @@ class Pad(QWidget, Creator):
 		btn = getattr(self, "pc" + self.padTitle + "_c" + col.lower())
 		btn.setStyleSheet('background-color: ' + color.name() + ';')
 		setattr(self, 'bordColor' + col, color.name())
+		if col == 'Off':
+			self.lightOff()
 
 

@@ -2,7 +2,7 @@ import json, os
 from pathlib import Path
 
 from qtpy.QtWidgets import QApplication, QMessageBox
-from qtpy.QtCore import QSharedMemory, QThread, QSettings
+from qtpy.QtCore import QCommandLineOption, QCommandLineParser, QSharedMemory, QThread, QSettings
 
 from pad.path import FREEPAD_PATH
 from pad.ui import FreepadWindow
@@ -33,6 +33,10 @@ sys.excepthook = excepthook
 class FreepadApp(QApplication):
 	def __init__(self, args):
 		super().__init__(args)
+		self.setApplicationName('Freepad')
+		self.setApplicationVersion('0.9.1')
+		self.setApplicationDisplayName('Freepad')
+		self.setStyle("fusion") # required
 		self.knownPads = {}
 		self.knownPadsNames = []
 		self.connectedPadsNames = {}
@@ -40,6 +44,19 @@ class FreepadApp(QApplication):
 		self.defaultKit = {}
 		self.defaultControls = {}
 		self.qsettings = QSettings('geomaticien.com', 'Freepad')
+		self.padname = None
+		parser = QCommandLineParser()
+		parser.addHelpOption()
+		parser.addVersionOption()
+		debug_option = QCommandLineOption(
+			["d", "debug"],
+			"Debug")
+		parser.addOption(debug_option)
+		parser.process(self)
+		self.debug = parser.isSet(debug_option)
+		argv = parser.positionalArguments()
+		if len(argv) > 0:
+			self.padname = argv[0]
 
 		# Read known pads
 		pdir = os.path.join(FREEPAD_PATH, "pads")
@@ -62,18 +79,31 @@ class FreepadApp(QApplication):
 		self._loadKit(self.defaultControls, self.qsettings.value('lastcontrols', self._get1stDefault('controls')))
 
 		_openUI = False
-		# Read connected known pads and open UI
-		for in_name in Mid.get_input_names():
-			mn = Mid.shortMidiName(in_name)
-			if mn in self.knownPadsNames:
-				self.connectedPadsNames[mn] = in_name
-				self.openUI(mn, in_name)
-				_openUI = True
-
+		if self.padname is None:
+			# Read connected known pads and open UI
+			for in_name in Mid.get_input_names():
+				mn = Mid.shortMidiName(in_name)
+				if mn in self.knownPadsNames:
+					self.connectedPadsNames[mn] = in_name
+					self.openUI(mn, in_name)
+					_openUI = True
+		else:
+			for in_name in Mid.get_input_names():
+				mn = Mid.shortMidiName(in_name)
+				if mn == self.padname:
+					self.connectedPadsNames[mn] = in_name
+					self.openUI(mn, in_name)
+					_openUI = True
+					break
 		if len(self.openedPads) == 0:
-			virtual_pad = 'LPD8'
-			self.openUI(virtual_pad, '')
-			_openUI = True
+			virtual_pad = self.padname.upper() if self.padname is not None else 'LPD8'
+			if virtual_pad in self.knownPadsNames:
+				self.openUI(virtual_pad, '')
+				_openUI = True
+			else:
+				print('"' + self.padname + '" is not a known device.')
+				self.exit()
+
 		if _openUI:
 		# Start a MidiConnectionListener in the background
 			self.mlcThread = QThread(self)
@@ -84,7 +114,9 @@ class FreepadApp(QApplication):
 			self.mlc.devicePlugged.connect(self.devicePlugged)
 			self.mlc.deviceUnplugged.connect(self.deviceUnplugged)
 			self.mlcThread.start()
-
+		else:
+			print('No pads found.')
+			self.exit()
 
 	def _get1stDefault(self, d):
 		path = FREEPAD_PATH.joinpath('midi').joinpath(d)
@@ -100,7 +132,7 @@ class FreepadApp(QApplication):
 	def _loadKit(self, var, fp):
 		fp = Path(fp)
 		if not fp.is_file():
-			return false
+			return False
 		with open(fp, 'r', encoding='UTF-8') as f:
 			for line in f:
 				line = line.strip()
@@ -119,13 +151,20 @@ class FreepadApp(QApplication):
 			msg = mn + ' already started'
 			mb = QMessageBox(QMessageBox.Warning, 'Freepad', msg)
 			mb.exec()
-			sys.exit()
+			self.exit()
 		else:
-			setattr(self, mn, FreepadWindow(self.knownPads[mn], in_name, self.defaultKit, self.defaultControls, self.qsettings))
+			params = {'device': self.knownPads[mn],
+							'in_name': in_name,
+							'defaultKit': self.defaultKit,
+							'defaultControls': self.defaultControls,
+							'settings': self.qsettings,
+							'debug': self.debug}
+			setattr(self, mn, FreepadWindow(params))
 			self.openedPads[mn] = getattr(self, mn)
 			self.openedPads[mn].setObjectName("Pads" + mn)
 			self.openedPads[mn].destroyed.connect(self.cleanExit)
 			self.openedPads[mn].show()
+		
 
 	def devicePlugged(self, midiports):
 		in_midiname = midiports['in'][0]

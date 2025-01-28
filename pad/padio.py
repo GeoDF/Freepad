@@ -51,7 +51,7 @@ class PadIO(QObject):
 			self.out_port = Mid.open_output(out_midiname)
 		if (self.in_port is not None) and (self.out_port is not None):
 			try: 
-				self.midiListenerThread = QThread(self)
+				self.midiListenerThread = QThread()
 				self.midiListener = MidiListener(self.in_port)
 				self.midiListener.moveToThread(self.midiListenerThread)
 				self.midiListenerThread.started.connect(self.midiListener.run)
@@ -117,24 +117,29 @@ class PadIO(QObject):
 		program = data + program[1:]
 		for i in range(0, len(data)):
 			program[i] = int(data[i], 16)
-		self.out_port.send(mido.Message("sysex", data = program))
-		print("PadIO.sentProgram(" + str(program) + ")")
+		m = mido.Message("sysex", data = program)
+		self.out_port.send(m)
+		return str(m)
 
 	def sendNoteOn(self, channel, note):
 		if channel in range(0,16) and note in range(0,128):
-			self.sendNoteMessage(channel, note, "on")
+			return self.sendNoteMessage(channel, note, "on")
 
 	def sendNoteOff(self, channel, note):
 		if channel in range(0,16) and note in range(0,128):
-			self.sendNoteMessage(channel, note, "off")
+			return self.sendNoteMessage(channel, note, "off")
 
 	def sendNoteMessage(self, channel, note, msg):
 		if self.mtout_port is not None:
-			self.mtout_port.send(mido.Message("note_" + msg, channel = channel, note = note))
+			m = mido.Message("note_" + msg, channel = channel, note = note)
+			self.mtout_port.send(m)
+			return str(m)[0:-7]
 
 	def sendControlChanged(self, channel, cc, val):
 		if self.mtout_port is not None:
-			self.mtout_port.send(mido.Message("control_change", channel = channel, control = cc, value = val))
+			m = mido.Message("control_change", channel = channel, control = cc, value = val)
+			self.mtout_port.send(m)
+			return str(m)[0:-7]
 
 class MidiListener(QObject):
 	gotMessage = Signal(str)
@@ -152,6 +157,8 @@ class MidiListener(QObject):
 
 	def cancel(self):
 		self._listen = False
+		self.deleteLater()
+
 
 class MidiConnectionListener(QObject):
 	devicePlugged = Signal(dict)
@@ -171,9 +178,8 @@ class MidiConnectionListener(QObject):
 	def cancel(self):
 		self.timer.stop()
 		del self.timer
+		self.deleteLater()
 
-	def destroyed(self):
-		self.cancel()
 
 	def listenMidiConnections(self):
 		_changed = False

@@ -11,17 +11,12 @@ class Knob(QWidget, Creator):
 		super().__init__(parent)
 		self.kTitle = title
 		self.controls = {}
-		self.mc = 9999
-
-	def sizeHint(self):
-		return self.minimumSize()
+		self.mc = 16
 
 	def setupUi(self, params):
-		if not self.objectName():
-			self.setObjectName(u"Knob")
-
-		if 'controls' in params:
-			self.controls = params['controls']
+		for p in ['controls', 'mc']:
+			if p in params:
+				setattr(self, p, params[p])
 
 		self.setStyleSheet("Knob #cbName {"
 "background: transparent;"
@@ -32,16 +27,14 @@ class Knob(QWidget, Creator):
 "}"
 )
 
-		self.setMinimumSize(120, 175)
-
 		self.createObj(u"knobLW", QWidget(self))
 		self.createObj(u"verticalLayout", QVBoxLayout())
 		self.knobLW.setLayout(self.verticalLayout)
-		self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+		self.verticalLayout.setContentsMargins(5, 5, 5, 5)
 		self.verticalLayout.setSpacing(3)
 
 		self.createObj(u"pot", Potard())
-		self.pot.setMaximumSize(66, 66)
+		self.pot.setFixedSize(60, 60)
 		self.verticalLayout.addWidget(self.pot, alignment = Qt.AlignmentFlag.AlignCenter)
 
 		self.createObj(u"cbName", QComboBox())
@@ -51,6 +44,7 @@ class Knob(QWidget, Creator):
 		if self.controls is not None:
 			for cc in self.controls:
 				self.cbName.addItem(self.controls[cc])
+		self.cbName.setMaximumWidth(120)
 		self.verticalLayout.addWidget(self.cbName)
 
 		self.spCC = Spinput()
@@ -64,6 +58,19 @@ class Knob(QWidget, Creator):
 		self.spHI = Spinput()
 		self.spHI.setupUi("k" + self.kTitle + "_hi", QCoreApplication.translate("Knob", u"HI", None))
 		self.verticalLayout.addWidget(self.spHI)
+
+		if self.mc < 16:
+			self.cbMC = self.createObj("k" + self.kTitle + "_mc", QComboBox(self.knobLW))
+			for ch in range(1,17):
+				sp = "  " if ch < 10 else ""
+				self.cbMC.addItem(sp + str(ch))
+			self.cbMC.addItem("Global")
+			self.cbMC.setCurrentIndex(16)
+			self.mc = 16
+			self.cbMC.currentIndexChanged.connect(lambda i: print(str(i)))
+			self.verticalLayout.addWidget(self.cbMC)
+
+		self.setFixedSize(self.knobLW.sizeHint())
 
 		self.retranslateUi(Knob)
 		

@@ -19,22 +19,17 @@ class FreepadOptionsWindow(QDialog, Creator):
 		if not self.objectName():
 			self.setObjectName(u"FreepadOptionsWindow")
 		self.resize(500, 400)
-		
 		self.setMinimumSize(500, 400)
-
 		self._openIcon = 	self.style().standardIcon(getattr(QStyle.StandardPixmap, "SP_DialogOpenButton"))
-
 		self.title = title
 		self.showMidiMessages = True if self.settings.value('showMidiMessages', True) == "True" else False
 		self.noteStyle = int(self.settings.value('noteStyle', '1'))
 		self.defaultDrumsKit = self.settings.value('lastkits', self._get1stDefault('kits'))
 		self.defaultControlsKit = self.settings.value('lastcontrols', self._get1stDefault('controls'))
-
 		self.setContentsMargins(0, 0, 0, 0)
 
 		self.createObj(u"vLayout", QVBoxLayout(self))
 		self.vLayout.setContentsMargins(0, 0, 0, 0)
-
 
 		self.tabWidget = QTabWidget(self)
 		self.tabWidget.setObjectName(u"tabWidget")

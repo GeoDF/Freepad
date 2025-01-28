@@ -1,19 +1,17 @@
 from qtpy.QtCore import QCoreApplication, QMetaObject, QSize, Qt
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 
-class Program(QWidget):
+from pad.ui.common import Creator
+
+class Program(QWidget , Creator):
 	def __init__(self, n, parent = None):
 		super().__init__(parent)
 		self.n = n
 
 	def setupUi(self):
-		if not self.objectName():
-			self.setObjectName("Program")
-
 		self.setMinimumSize(QSize(138, 65))
 
-		self.vLayout = QVBoxLayout(self)
-		self.vLayout.setObjectName("verticalLayout")
+		self.createObj("vLayout", QVBoxLayout(self))
 		self.vLayout.setContentsMargins(0, 0, 0, 0)
 		
 		self.lblhLayout = QHBoxLayout()
@@ -22,15 +20,13 @@ class Program(QWidget):
 		self.lblhSpacerg = QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 		self.lblhLayout.addItem(self.lblhSpacerg)
 
-		self.lblTitleChecked = QLabel()
-		self.lblTitleChecked.setObjectName("lblTitleChecked")
+		self.createObj("lblTitleChecked", QLabel())
 		self.lblTitleChecked.setAlignment(Qt.AlignmentFlag.AlignCenter)
 		self.lblTitleChecked.setFixedWidth(12)
 		self.lblTitleChecked.setStyleSheet("background: transparent;")
 		self.lblhLayout.addWidget(self.lblTitleChecked)
 
-		self.bTitle = QPushButton()
-		self.bTitle.setObjectName("bTitle")
+		self.createObj("bTitle", QPushButton())
 		self.bTitle.setStyleSheet("border: none; background: transparent")
 		self.lblhLayout.addWidget(self.bTitle)
 
@@ -39,8 +35,7 @@ class Program(QWidget):
 
 		self.vLayout.addLayout(self.lblhLayout)
 
-		self.hLayout = QHBoxLayout()
-		self.hLayout.setObjectName("hLayout")
+		self.createObj("hLayout", QHBoxLayout())
 		self.hLayout.setContentsMargins(0, 0, 0, 0)
 
 		self.hSpacerl = QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)

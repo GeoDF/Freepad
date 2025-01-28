@@ -18,9 +18,6 @@ class Spinput(QWidget, Creator):
 	valueChanged = Signal(int)
 
 	def setupUi(self, name, label):
-		if not self.objectName():
-			self.setObjectName(u"Spinput")
-
 		self.name = name
 		self.label = label
 
@@ -33,8 +30,7 @@ class Spinput(QWidget, Creator):
 		self.lbl.setToolTip(self.name)
 		#endif // QT_CONFIG(tooltip)
 		self.hl.addWidget(self.lbl)
-		self.spin = QSpinBox()
-		self.spin.setObjectName(name)
+		self.createObj('spin', QSpinBox())
 		arrow_size = "width: 7px; height: 7px";
 		self.spin.setStyleSheet("QSpinBox {padding-left:5px; padding-right:5px; background: transparent; border: 1px inset #171719; border-radius: 3px}"
 "QSpinBox:hover {border: 1px inset #441200}"
@@ -53,6 +49,7 @@ class Spinput(QWidget, Creator):
 		self.spin.setMaximum(127)
 		self.spin.setAccelerated(True)
 		self.hl.addWidget(self.spin)
+		#self.setFixedSize(self.hl.sizeHint())
 
 		self.spin.valueChanged.connect(lambda v: self.valueChanged.emit(v))
 		QMetaObject.connectSlotsByName(self)
