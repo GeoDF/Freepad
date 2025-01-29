@@ -9,9 +9,9 @@ class Pad(QWidget, Creator):
 	sendNoteOn = Signal(int, int)
 	sendNoteOff = Signal(int, int)
 
-	def __init__(self, title, settings, parent = None):
+	def __init__(self, id, settings, parent = None):
 		super().__init__(parent)
-		self.padTitle = title
+		self.id = id
 		self.note = 0
 		self.noteStyle = int(settings.value('noteStyle', 1))
 		self.kit = {}
@@ -54,7 +54,7 @@ class Pad(QWidget, Creator):
 		self.cbName.setEditable(True)
 		self.cbName.setMaximumWidth(100)
 		self.cbName.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
-		self.cbName.addItem(u"Pad " + self.padTitle)
+		self.cbName.addItem(u"Pad " + self.id)
 		if self.kit is not None:
 			for note in self.kit:
 				self.cbName.addItem(self.kit[note])
@@ -62,11 +62,11 @@ class Pad(QWidget, Creator):
 
 		self.btnNoteHL = QHBoxLayout()
 		if self.rgb:
-			btnOff = self.createObj("pc" + self.padTitle + "_coff", QPushButton())
+			btnOff = self.createObj("pc" + self.id + "_coff", QPushButton())
 			btnOff.setMaximumSize(12, 12)
 			btnOff.setStyleSheet('background-color: ' + self.bordColorOff + ';')
 			btnOff.clicked.connect(lambda e: self.chooseColor('Off'))
-			btnOn = self.createObj("pc" + self.padTitle + "_con", QPushButton())
+			btnOn = self.createObj("pc" + self.id + "_con", QPushButton())
 			self.btnNoteHL.addWidget(btnOff, Qt.AlignmentFlag.AlignLeft)
 			btnOn.setMaximumSize(12, 12)
 			btnOn.setStyleSheet('background-color: ' + self.bordColorOn + ';')
@@ -80,26 +80,26 @@ class Pad(QWidget, Creator):
 		self.verticalLayout.addLayout(self.btnNoteHL)
 
 		self.spNote = Spinput()
-		self.spNote.setupUi("p" + self.padTitle + "_note", QCoreApplication.translate("Pad", u"Note", None))
+		self.spNote.setupUi("p" + self.id + "_note", QCoreApplication.translate("Pad", u"Note", None))
 		self.verticalLayout.addWidget(self.spNote)
 
 		self.spCC = Spinput()
-		self.spCC.setupUi("p" + self.padTitle + "_cc", QCoreApplication.translate("Pad", u"CC", None))
+		self.spCC.setupUi("p" + self.id + "_cc", QCoreApplication.translate("Pad", u"CC", None))
 		self.verticalLayout.addWidget(self.spCC)
 
 		self.spPC = Spinput()
-		self.spPC.setupUi("p" + self.padTitle + "_pc", QCoreApplication.translate("Pad", u"PC", None))
+		self.spPC.setupUi("p" + self.id + "_pc", QCoreApplication.translate("Pad", u"PC", None))
 		self.verticalLayout.addWidget(self.spPC)
 
 		if self.bv:
-			self.cbBehavior = self.createObj("p" + self.padTitle + "_b", QComboBox(self.padLW))
+			self.cbBehavior = self.createObj("p" + self.id + "_b", QComboBox(self.padLW))
 			self.cbBehavior.addItem("")
 			self.cbBehavior.addItem("")
 			self.cbBehavior.currentIndexChanged.connect(self.valueChanged)
 			self.verticalLayout.addWidget(self.cbBehavior)
 
 		if self.mc < 16:
-			self.cbMC = self.createObj("p" + self.padTitle + "_mc", QComboBox(self.padLW))
+			self.cbMC = self.createObj("p" + self.id + "_mc", QComboBox(self.padLW))
 			for ch in range(1,17):
 				sp = "  " if ch < 10 else ""
 				self.cbMC.addItem(sp + str(ch))
@@ -177,7 +177,7 @@ class Pad(QWidget, Creator):
 
 	def chooseColor(self, col):
 		color = QColorDialog.getColor()
-		btn = getattr(self, "pc" + self.padTitle + "_c" + col.lower())
+		btn = getattr(self, "pc" + self.id + "_c" + col.lower())
 		btn.setStyleSheet('background-color: ' + color.name() + ';')
 		setattr(self, 'bordColor' + col, color.name())
 		if col == 'Off':

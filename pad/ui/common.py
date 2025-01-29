@@ -30,7 +30,7 @@ class Spinput(QWidget, Creator):
 		self.lbl.setToolTip(self.name)
 		#endif // QT_CONFIG(tooltip)
 		self.hl.addWidget(self.lbl)
-		self.createObj('spin', QSpinBox())
+		self.spin = self.createObj(name, QSpinBox(self.parent()))
 		arrow_size = "width: 7px; height: 7px";
 		self.spin.setStyleSheet("QSpinBox {padding-left:5px; padding-right:5px; background: transparent; border: 1px inset #171719; border-radius: 3px}"
 "QSpinBox:hover {border: 1px inset #441200}"

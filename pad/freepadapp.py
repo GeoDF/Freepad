@@ -107,7 +107,7 @@ class FreepadApp(QApplication):
 		if _openUI:
 		# Start a MidiConnectionListener in the background
 			self.mlcThread = QThread(self)
-			self.mlc = MidiConnectionListener()
+			self.mlc = MidiConnectionListener(self.knownPadsNames)
 			self.mlc.moveToThread(self.mlcThread)
 			self.mlcThread.started.connect(self.mlc.run)
 			self.mlcThread.finished.connect(self.mlc.cancel)

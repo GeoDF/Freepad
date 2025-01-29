@@ -50,16 +50,16 @@ class PadIO(QObject):
 		if out_midiname in Mid.get_output_names():
 			self.out_port = Mid.open_output(out_midiname)
 		if (self.in_port is not None) and (self.out_port is not None):
-			try: 
-				self.midiListenerThread = QThread()
+			try:
+				self.midiListenerThread = QThread(self)
 				self.midiListener = MidiListener(self.in_port)
 				self.midiListener.moveToThread(self.midiListenerThread)
-				self.midiListenerThread.started.connect(self.midiListener.run)
 				self.midiListener.gotMessage.connect(lambda msg: self.receivedMidi.emit(msg))
+				self.midiListenerThread.started.connect(self.midiListener.run)
 				self.midiListenerThread.start()
-				self.isConnected = True
+				self.isConnected = self.midiListenerThread.isRunning()
 			except Exception as e:
-				print('Error in openDevicePorts ' + str(e))
+				print('Error in openDevicePorts: ' + str(e))
 		try:
 			for name in Mid.get_output_names():
 				if 'Midi Through' in name:
@@ -74,8 +74,9 @@ class PadIO(QObject):
 			self.out_port.close()
 			self.in_port = None
 			self.out_port = None
-		except:
-			pass
+			self.midiListener.stop()
+		except Exception as e:
+			print('Error in closeDevicePorts:' + str(e))
 		self.isConnected = False
 
 	def _find_pad(self, op):
@@ -96,7 +97,6 @@ class PadIO(QObject):
 			print("Error in _find_pad: " + str(e))
 
 	def close(self):
-		print("io.close")
 		self.closeDevicePorts()
 		self.mtout_port.close()
 
@@ -147,33 +147,38 @@ class MidiListener(QObject):
 	def __init__(self, in_port, parent = None):
 		super().__init__(parent)
 		self.in_port = in_port
-		self._listen = True
+		self.timer = QTimer(self) # Using a timer preserve from freezing GUI
+		self.timer.setInterval(1)
+		self.timer.timeout.connect(self.listenMessages)
 
 	def run(self):
-		while self._listen:
-			if self.in_port is not None:
-				msg = self.in_port.receive()
+		self.timer.start()
+
+	def listenMessages(self):
+		for msg in self.in_port.iter_pending():
+			if msg is not None:
 				self.gotMessage.emit(str(msg))
 
-	def cancel(self):
-		self._listen = False
-		self.deleteLater()
+	def stop(self):
+		self.timer.stop()
+		self.thread().quit()
 
 
 class MidiConnectionListener(QObject):
 	devicePlugged = Signal(dict)
 	deviceUnplugged  = Signal(dict)
 
-	def __init__(self, parent = None):
+	def __init__(self, knownPadsNames, parent = None):
 		super().__init__(parent)
 		self.timer = QTimer(self)
 		self.timer.setInterval(250)
 		self.timer.timeout.connect(self.listenMidiConnections)
 		self.in_names = Mid.get_input_names()
 		self.out_names = Mid.get_output_names()
+		self.knownPadsNames = knownPadsNames
 
 	def run(self):
-		self.timer.start(500)
+		self.timer.start()
 
 	def cancel(self):
 		self.timer.stop()
@@ -213,17 +218,17 @@ class MidiConnectionListener(QObject):
 					break
 			if j == j_max:
 					#added.append(new_set[i])
-					self._appendIfNotRtMidi(added, new_set[i])
+					self._appendIfKnown(added, new_set[i])
 					i += 1
 					continue
 			if i == i_max:
 					#deleted.append(old_set[j])
-					self._appendIfNotRtMidi(deleted, old_set[j])
+					self._appendIfKnown(deleted, old_set[j])
 					j += 1
 					continue
 			if new_set[i] < old_set[j]:
 					#added.append(new_set[i])
-					self._appendIfNotRtMidi(added, new_set[i])
+					self._appendIfKnown(added, new_set[i])
 					i += 1
 					continue
 			if new_set[i] == old_set[j]:
@@ -232,11 +237,11 @@ class MidiConnectionListener(QObject):
 					continue
 			if new_set[i] > old_set[j]:
 					#deleted.append(old_set[j])
-					self._appendIfNotRtMidi(deleted, old_set[j])
+					self._appendIfKnown(deleted, old_set[j])
 					j += 1
 					continue
 
-	def _appendIfNotRtMidi(self, lst : list, val : str):
-		if val[0:6] != 'RtMidi':
+	def _appendIfKnown(self, lst : list, val : str):
+		if Mid.shortMidiName(val) in self.knownPadsNames:
 			lst.append(val)
 
