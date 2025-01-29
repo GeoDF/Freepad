@@ -6,7 +6,7 @@ from qtpy.QtWidgets import QCheckBox, QComboBox, QFileDialog, QGridLayout, \
 	QStyle, QVBoxLayout, QWidget
 from qtpy.QtGui import QIcon, QKeyEvent
 
-from pad.path import FREEPAD_PATH
+from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH
 from pad.ui.common import Creator, PadException
 from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
@@ -15,7 +15,7 @@ from pad.padio import PadIO
 class FreepadWindow(QWidget, Creator):
 	def __init__(self, params):
 		super().__init__()
-		self.setWindowIcon(QIcon(str(FREEPAD_PATH.joinpath('ui').joinpath('img').joinpath('djembe.png'))))
+		self.setWindowIcon(QIcon(FREEPAD_ICON_PATH))
 		self.setAttribute(Qt.WA_DeleteOnClose)
 		self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 		for p in ['device', 'in_name', 'defaultKit', 'defaultControls', 'settings', 'debug']:
@@ -33,7 +33,6 @@ class FreepadWindow(QWidget, Creator):
 		else:
 			self.nbPrograms = 0
 
-		self.setFixedSize(self.sizeHint())
 		self.titleColor = "#dfdddd"
 		self.noteColor = "#cfffff"
 		self.lgradient = "qlineargradient(spread:reflect, x1:1, y1:0.5, x2:1, y2:1, stop:0 #171719, stop:1 #080808);"
@@ -105,6 +104,7 @@ class FreepadWindow(QWidget, Creator):
 		self.pmc = 16
 		self.kmc = 16
 		self.setupUi()
+		self.setFixedSize(self.sizeHint())
 		if self.io.isConnected:
 			self.getProgram("1")
 		else:
@@ -609,21 +609,21 @@ class FreepadWindow(QWidget, Creator):
 		if mc == 16:
 			mc = self.mc.currentIndex()
 		msg = self.io.sendNoteOn(mc, note)
-		if self.showMidiMessages:
+		if self.showMidiMessages and msg is not None:
 			self.statusbar.showMessage('< ' + msg)
 
 	def _sendNoteOff(self, mc, note):
 		if mc == 16:
 			mc = self.mc.currentIndex()
 		msg = self.io.sendNoteOff(mc, note)
-		if self.showMidiMessages:
+		if self.showMidiMessages and msg is not None:
 			self.statusbar.showMessage('< ' + msg)
 
 	def _sendControlChanged(self, mc, cc, val):
 		if mc == 16:
 			mc = self.mc.currentIndex()
 		msg = self.io.sendControlChanged(mc, cc, val)
-		if self.showMidiMessages:
+		if self.showMidiMessages and msg is not None:
 			self.statusbar.showMessage('< ' + msg)
 
 	def valueChanged(self, value):

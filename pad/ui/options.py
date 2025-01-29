@@ -4,22 +4,22 @@ from pathlib import Path
 from qtpy.QtCore import QCoreApplication, QDir, QMetaObject
 from qtpy.QtWidgets import QCheckBox, QDialog, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, \
 	QSizePolicy, QSpacerItem, QTabWidget, QTextBrowser, QRadioButton, QPushButton, QVBoxLayout, QStyle, QWidget
-from qtpy.QtGui import QDesktopServices
+from qtpy.QtGui import QDesktopServices, QIcon
 
-from pad.path import FREEPAD_PATH
+from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH
 from pad.ui.common import Creator
 
 class FreepadOptionsWindow(QDialog, Creator):
 	def __init__(self, settings, parent = None):
 		super().__init__(parent)
 		self.settings = settings
-		
+		self.setWindowIcon(QIcon(FREEPAD_ICON_PATH))
 
 	def setupUi(self, title):
 		if not self.objectName():
 			self.setObjectName(u"FreepadOptionsWindow")
-		self.resize(500, 400)
-		self.setMinimumSize(500, 400)
+		self.resize(600, 400)
+		self.setMinimumSize(600, 400)
 		self._openIcon = 	self.style().standardIcon(getattr(QStyle.StandardPixmap, "SP_DialogOpenButton"))
 		self.title = title
 		self.showMidiMessages = True if self.settings.value('showMidiMessages', True) == "True" else False

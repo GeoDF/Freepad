@@ -1,7 +1,7 @@
 import mido
+import mido.backends.rtmidi
 
 from qtpy.QtCore import QObject, QThread, QTimer, Signal
-
 
 class Mid(object):
 	@staticmethod
@@ -28,8 +28,6 @@ class Mid(object):
 	@staticmethod
 	def open_output(midiname):
 		return mido.open_output(midiname, False)
-
-
 
 class PadIO(QObject):
 	receivedMidi = Signal(str)
@@ -70,13 +68,14 @@ class PadIO(QObject):
 
 	def closeDevicePorts(self):
 		try: 
+			self.midiListener.stop()
 			self.in_port.close()
 			self.out_port.close()
 			self.in_port = None
 			self.out_port = None
-			self.midiListener.stop()
 		except Exception as e:
-			print('Error in closeDevicePorts:' + str(e))
+			pass
+			#print('Error in closeDevicePorts:' + str(e))
 		self.isConnected = False
 
 	def _find_pad(self, op):
@@ -98,7 +97,7 @@ class PadIO(QObject):
 
 	def close(self):
 		self.closeDevicePorts()
-		self.mtout_port.close()
+		#self.mtout_port.close()
 
 	# Reuest for the program n° nb. Response read by MidiListener and received by ui
 	def getProgram(self, nb):
@@ -148,7 +147,7 @@ class MidiListener(QObject):
 		super().__init__(parent)
 		self.in_port = in_port
 		self.timer = QTimer(self) # Using a timer preserve from freezing GUI
-		self.timer.setInterval(1)
+		self.timer.setInterval(8)
 		self.timer.timeout.connect(self.listenMessages)
 
 	def run(self):
@@ -161,6 +160,7 @@ class MidiListener(QObject):
 
 	def stop(self):
 		self.timer.stop()
+		del self.timer
 		self.thread().quit()
 
 

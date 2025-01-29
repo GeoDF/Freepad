@@ -1,0 +1,1 @@
+from .freepadapp import FreepadApp
