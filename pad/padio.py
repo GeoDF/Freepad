@@ -135,17 +135,17 @@ class PadIO(QObject):
 		self.out_port.send(m)
 		return str(m)
 
-	def sendNoteOn(self, channel, note):
+	def sendNoteOn(self, channel, note, velocity):
 		if channel in range(0,16) and note in range(0,128):
-			return self.sendNoteMessage(channel, note, "on")
+			return self.sendNoteMessage(channel, note, velocity, "on")
 
-	def sendNoteOff(self, channel, note):
+	def sendNoteOff(self, channel, note, velocity):
 		if channel in range(0,16) and note in range(0,128):
-			return self.sendNoteMessage(channel, note, "off")
+			return self.sendNoteMessage(channel, note, velocity, "off")
 
-	def sendNoteMessage(self, channel, note, msg):
+	def sendNoteMessage(self, channel, note, velocity, msg):
 		if self.mtout_port is not None:
-			m = mido.Message("note_" + msg, channel = channel, note = note)
+			m = mido.Message("note_" + msg, channel = channel, note = note, velocity = velocity)
 			self.mtout_port.send(m)
 			return str(m)[0:-7]
 

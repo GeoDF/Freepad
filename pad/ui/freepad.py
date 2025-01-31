@@ -600,17 +600,17 @@ class FreepadWindow(QWidget, Creator):
 		dialog.setupUi(self.midiname)
 		dialog.exec()
 
-	def _sendNoteOn(self, mc, note):
+	def _sendNoteOn(self, mc, note, velocity):
 		if mc == 16:
 			mc = self.mc.currentIndex()
-		msg = self.io.sendNoteOn(mc, note)
+		msg = self.io.sendNoteOn(mc, note, velocity)
 		if self.showMidiMessages and msg is not None:
 			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
 
-	def _sendNoteOff(self, mc, note):
+	def _sendNoteOff(self, mc, note, velocity):
 		if mc == 16:
 			mc = self.mc.currentIndex()
-		msg = self.io.sendNoteOff(mc, note)
+		msg = self.io.sendNoteOff(mc, note, velocity)
 		if self.showMidiMessages and msg is not None:
 			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
 
@@ -635,12 +635,12 @@ class FreepadWindow(QWidget, Creator):
 # TODO : map keybord on pad. This will probably won't work. May be we need to capture keyboard events and test
 # its to fire pads when no input control have focus
 	def keyPressEvent(self, event):
-		if isinstance(event, QKeyEvent) and not event.isAutoRepeat():
+		if isinstance(event, QKeyEvent) and not event.isAutoRepeat() and self.hasFocus():
 			key_text = event.text()
-			print(f"Last Key Pressed: {key_text}")
+			print(f"Last Key Pressed: {key_text} " + str(self.hasFocus()))
 
 	def keyReleaseEvent(self, event):
-		if isinstance(event, QKeyEvent) and not event.isAutoRepeat():
+		if isinstance(event, QKeyEvent) and not event.isAutoRepeat() and self.hasFocus():
 			key_text = event.text()
 			print(f"Key Released: {key_text}")
 

@@ -1,4 +1,4 @@
-from qtpy.QtCore import QCoreApplication, QMetaObject, QSize, Qt, Signal
+from qtpy.QtCore import QCoreApplication, QMetaObject, QSize, Qt, QTimer, Signal
 from qtpy.QtWidgets import QColorDialog, QComboBox, QFrame, QGraphicsDropShadowEffect, QHBoxLayout, \
 		QLineEdit, QPushButton, QSlider, QVBoxLayout, QWidget
 from qtpy.QtGui import QColor
@@ -6,8 +6,8 @@ from qtpy.QtGui import QColor
 from pad.ui.common import Creator, Spinput
 
 class Pad(QWidget, Creator):
-	sendNoteOn = Signal(int, int)
-	sendNoteOff = Signal(int, int)
+	sendNoteOn = Signal(int, int, int)
+	sendNoteOff = Signal(int, int, int)
 
 	def __init__(self, id, settings, parent = None):
 		super().__init__(parent)
@@ -24,7 +24,6 @@ class Pad(QWidget, Creator):
 		self.bv = False
 		self.rgb = False
 		self.mc = 16
-		self.velocity = 64
 		self.noteString = [
 			["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
 			[u"Do", u"Do#", u"Ré", u"Ré#", u"Mi", u"Fa", u"Fa#", u"Sol", u"Sol#", u"La", u"La#", u"Si",]
@@ -46,7 +45,7 @@ class Pad(QWidget, Creator):
 "}"
 'QSlider::groove:vertical {width: 5px; border: 1px solid #000000; background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(255, 170, 0, 255), stop:1 rgba(170, 0, 0, 255));;}'
 			'QSlider::sub-page:vertical {width: 5px; border: 1px solid #000000; background: ' + self.lgradient + ';}'
-'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + self.rgradient + ';}'
+'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + self.rgradient + '; selection-color: #ff3800; selection-background-color: #001828;}'
 'QLineEdit:focus, QLineEdit:hover {border: 1px inset #441200;}'
 )
 
@@ -127,9 +126,7 @@ class Pad(QWidget, Creator):
 		self.createObj('level', Level(self))
 		self.vlLevel.addWidget(self.level, 0, Qt.AlignmentFlag.AlignHCenter)
 		# Key
-		self.createObj('leKey', QLineEdit())
-		self.leKey.setFixedSize(QSize(20,20))
-		self.leKey.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+		self.createObj('leKey', keyEdit())
 		self.vlLevel.addWidget(self.leKey)
 
 		self.hl.addLayout(self.vlLevel)
@@ -185,7 +182,7 @@ class Pad(QWidget, Creator):
 			shadow.setOffset(1, 1)
 			shadow.setBlurRadius(12)
 			self.setGraphicsEffect(shadow)
-			self.level.setValue(int(velocity))
+			self.level.setVelocity(int(velocity))
 		except Exception as e:
 			self.parent().cprint('Error in Pad.lightOn: ' + str(e))
 
@@ -193,16 +190,16 @@ class Pad(QWidget, Creator):
 		try:
 			self.padLW.setStyleSheet('#padLW {border-color: rgb(' + str(self.off_red) +',' + str(self.off_green) + ',' + str(self.off_blue) + ');}')
 			self.setGraphicsEffect(None)
-			self.level.setValue(0)
+			self.level.setVelocity(0)
 		except:
 			pass
 
 	def _sendNoteOn(self):
-		self.sendNoteOn.emit(self.mc, self.note)
-		self.lightOn(self.velocity)
+		self.sendNoteOn.emit(self.mc, self.note, self.level.defaultVelocity)
+		self.lightOn(self.level.defaultVelocity)
 
 	def _sendNoteOff(self):
-		self.sendNoteOff.emit(self.mc, self.note)
+		self.sendNoteOff.emit(self.mc, self.note, self.level.defaultVelocity)
 		self.lightOff()
 
 	def chooseColor(self, col):
@@ -222,5 +219,35 @@ class Level(QSlider):
 		self.setMinimum(0)
 		self.setMaximum(127)
 		self.setOrientation(Qt.Orientation.Vertical)
+		self.defaultVelocity = 64 # velocity when sending midi notes
+		self._settingVelocity = False
+		self.valueChanged.connect(self.setDefaultVelocity)
 
-	
+	def focusInEvent(self, *args, **kwargs):
+		self.setVelocity(self.defaultVelocity)
+		return QSlider.focusInEvent(self, *args, **kwargs)
+
+	def focusOutEvent(self, *args, **kwargs):
+		self.setVelocity(0)
+		return QSlider.focusInEvent(self, *args, **kwargs)
+
+	def setDefaultVelocity(self, v):
+		if not self._settingVelocity:
+			self.defaultVelocity = v
+
+	def setVelocity(self, v):
+		self._settingVelocity = True
+		self.setValue(v)
+		self._settingVelocity = False
+
+class keyEdit(QLineEdit):
+	def __init__(self, parent = None):
+		super().__init__(parent)
+		self.setFixedSize(QSize(20,20))
+		self.setMaxLength(1)
+		self.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+
+	def focusInEvent(self, *args, **kwargs):
+		QTimer.singleShot(0, self.selectAll)
+		return QLineEdit.focusInEvent(self, *args, **kwargs)
+
