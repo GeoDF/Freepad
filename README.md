@@ -17,5 +17,6 @@ And if you set the same note for two or more pads or the same control change to 
 In such cases, a warning message is briefly displayed.
 Sending a program to the LPD8, getting one, or loading a program from your computer restore the synchronisation.
 
-The LPD8 MK2 is NOT SUPPORTED yet. 
+The LPD8 MK2 is NOT SUPPORTED yet ... but it will be :
+![virtual_mk2](https://github.com/user-attachments/assets/4044faf2-f7a2-4036-97bc-be4bee00255f)
 

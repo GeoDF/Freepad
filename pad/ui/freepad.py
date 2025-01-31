@@ -38,8 +38,8 @@ class FreepadWindow(QWidget, Creator):
 		self.titleColor = "#dfdddd"
 		self.noteColor = "#cfffff"
 		self.lgradient = "qlineargradient(spread:reflect, x1:1, y1:0.5, x2:1, y2:1, stop:0 #171719, stop:1 #080808);"
-		rgradient = "qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #080808, stop:1 #171719)"
-		rgradient_over = "qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #280808, stop:1 #171719)"
+		self.rgradient = "qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #080808, stop:1 #171719)"
+		self.rgradient_over = "qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #280808, stop:1 #171719)"
 
 		self.setStyleSheet("FreepadWindow * {"
 "color: white;"
@@ -78,10 +78,10 @@ class FreepadWindow(QWidget, Creator):
 "selection-background-color: #8f2200; selection-color: #000022;"
 "}"
 "QPushButton, QComboBox, QComboBox QListView {"
-"background: " + rgradient + ";"
+"background: " + self.rgradient + ";"
 "}"
 "QPushButton:hover {"
-"background: " + rgradient_over + "; color: #8fffdf;"
+"background: " + self.rgradient_over + "; color: #8fffdf;"
 "}"
 "QPushButton {"
 "border: 2px outset #171719; padding: 5px; padding-left: 15px; padding-right: 15px;"
@@ -178,7 +178,10 @@ class FreepadWindow(QWidget, Creator):
 					params = {'kit': self.defaultKit, \
 									'bv': 'bv' in self.device['pad'], \
 									'rgb': 'on_red' in self.device['pad'],
-									'mc': self.pmc}
+									'mc': self.pmc,
+									'lgradient': self.rgradient,
+									'rgradient': self.rgradient
+									}
 					ctlClass.sendNoteOn.connect(self._sendNoteOn)
 					ctlClass.sendNoteOff.connect(self._sendNoteOff)
 				elif ctlType == 'k':
@@ -430,7 +433,7 @@ class FreepadWindow(QWidget, Creator):
 		if padnum > 0:
 			pad = self.findChildren(QWidget, "p" + str(padnum))
 			if len(pad) > 0:
-				pad[0].lightOn()
+				pad[0].lightOn(velocity[9:])
 		else:
 			self.warning("Cannot retrieve pad from note " + str(note), " in " + str(self.padNotes))
 
@@ -632,12 +635,12 @@ class FreepadWindow(QWidget, Creator):
 # TODO : map keybord on pad. This will probably won't work. May be we need to capture keyboard events and test
 # its to fire pads when no input control have focus
 	def keyPressEvent(self, event):
-		if isinstance(event, QKeyEvent):
+		if isinstance(event, QKeyEvent) and not event.isAutoRepeat():
 			key_text = event.text()
 			print(f"Last Key Pressed: {key_text}")
 
 	def keyReleaseEvent(self, event):
-		if isinstance(event, QKeyEvent):
+		if isinstance(event, QKeyEvent) and not event.isAutoRepeat():
 			key_text = event.text()
 			print(f"Key Released: {key_text}")
 

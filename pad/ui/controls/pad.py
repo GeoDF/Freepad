@@ -1,6 +1,6 @@
-from qtpy.QtCore import QCoreApplication, QMetaObject, Qt, Signal
+from qtpy.QtCore import QCoreApplication, QMetaObject, QSize, Qt, Signal
 from qtpy.QtWidgets import QColorDialog, QComboBox, QFrame, QGraphicsDropShadowEffect, QHBoxLayout, \
-		QPushButton, QVBoxLayout, QWidget
+		QLineEdit, QPushButton, QSlider, QVBoxLayout, QWidget
 from qtpy.QtGui import QColor
 
 from pad.ui.common import Creator, Spinput
@@ -24,6 +24,7 @@ class Pad(QWidget, Creator):
 		self.bv = False
 		self.rgb = False
 		self.mc = 16
+		self.velocity = 64
 		self.noteString = [
 			["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
 			[u"Do", u"Do#", u"Ré", u"Ré#", u"Mi", u"Fa", u"Fa#", u"Sol", u"Sol#", u"La", u"La#", u"Si",]
@@ -43,6 +44,10 @@ class Pad(QWidget, Creator):
 "min-width: 150px;"
 "border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;"
 "}"
+'QSlider::groove:vertical {width: 5px; border: 1px solid #000000; background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(255, 170, 0, 255), stop:1 rgba(170, 0, 0, 255));;}'
+			'QSlider::sub-page:vertical {width: 5px; border: 1px solid #000000; background: ' + self.lgradient + ';}'
+'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + self.rgradient + ';}'
+'QLineEdit:focus, QLineEdit:hover {border: 1px inset #441200;}'
 )
 
 		self.createObj(u"padLW", QFrame(self))
@@ -55,7 +60,7 @@ class Pad(QWidget, Creator):
 
 		self.createObj(u"cbName", QComboBox())
 		self.cbName.setEditable(True)
-		self.cbName.setMaximumWidth(100)
+		self.cbName.setMaximumWidth(115)
 		self.cbName.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
 		self.cbName.addItem(u"Pad " + self.id)
 		if self.kit is not None:
@@ -116,6 +121,20 @@ class Pad(QWidget, Creator):
 			self.vl2.addWidget(self.cbMC)
 
 		self.hl.addLayout(self.vl2)
+
+		# Level
+		self.createObj('vlLevel', QVBoxLayout())
+		self.createObj('level', Level(self))
+		self.vlLevel.addWidget(self.level, 0, Qt.AlignmentFlag.AlignHCenter)
+		# Key
+		self.createObj('leKey', QLineEdit())
+		self.leKey.setFixedSize(QSize(20,20))
+		self.leKey.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+		self.vlLevel.addWidget(self.leKey)
+
+		self.hl.addLayout(self.vlLevel)
+		self.verticalLayout.addLayout(self.hl)
+
 		self.verticalLayout.addLayout(self.hl)
 
 		self.setFixedSize(self.padLW.sizeHint())
@@ -158,7 +177,7 @@ class Pad(QWidget, Creator):
 		if self.parent() is not None:
 			self.parent().unselPrograms()
 
-	def lightOn(self):
+	def lightOn(self, velocity):
 		try:
 			self.padLW.setStyleSheet('#padLW {border-color: rgb(' + str(self.on_red) +',' + str(self.on_green) + ',' + str(self.on_blue) + ');}')
 			shadow = QGraphicsDropShadowEffect()
@@ -166,19 +185,21 @@ class Pad(QWidget, Creator):
 			shadow.setOffset(1, 1)
 			shadow.setBlurRadius(12)
 			self.setGraphicsEffect(shadow)
-		except:
-			pass
+			self.level.setValue(int(velocity))
+		except Exception as e:
+			self.parent().cprint('Error in Pad.lightOn: ' + str(e))
 
 	def lightOff(self):
 		try:
 			self.padLW.setStyleSheet('#padLW {border-color: rgb(' + str(self.off_red) +',' + str(self.off_green) + ',' + str(self.off_blue) + ');}')
 			self.setGraphicsEffect(None)
+			self.level.setValue(0)
 		except:
 			pass
 
 	def _sendNoteOn(self):
 		self.sendNoteOn.emit(self.mc, self.note)
-		self.lightOn()
+		self.lightOn(self.velocity)
 
 	def _sendNoteOff(self):
 		self.sendNoteOff.emit(self.mc, self.note)
@@ -195,3 +216,11 @@ class Pad(QWidget, Creator):
 			self.lightOff()
 
 
+class Level(QSlider):
+	def __init__(self, parent = None):
+		super().__init__(parent)
+		self.setMinimum(0)
+		self.setMaximum(127)
+		self.setOrientation(Qt.Orientation.Vertical)
+
+	
