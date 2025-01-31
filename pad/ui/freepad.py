@@ -16,7 +16,7 @@ class FreepadWindow(QWidget, Creator):
 	def __init__(self, params):
 		super().__init__()
 		self.setWindowIcon(QIcon(FREEPAD_ICON_PATH))
-		self.setAttribute(Qt.WA_DeleteOnClose)
+		self.setAttribute(Qt.WA_DeleteOnClose) #noqa
 		self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 		for p in ['device', 'in_name', 'defaultKit', 'defaultControls', 'settings', 'debug']:
 			if p in params:
@@ -32,6 +32,8 @@ class FreepadWindow(QWidget, Creator):
 			self.nbPrograms = int(self.device["nb_programs"])
 		else:
 			self.nbPrograms = 0
+
+		self._program = self.io.program
 
 		self.titleColor = "#dfdddd"
 		self.noteColor = "#cfffff"
@@ -91,6 +93,8 @@ class FreepadWindow(QWidget, Creator):
 "color: #666666;"
 "}"
 )
+		self.in_symbol = '\u25B6'
+		self.out_symbol = '\u25C0'
 
 		self.showMidiMessages = True if str(self.settings.value('showMidiMessages', "True")) == "True"  else False
 		self.settingProgram = False
@@ -99,8 +103,6 @@ class FreepadWindow(QWidget, Creator):
 		self.padControlChanges = []
 		self.programs = []
 		self.nbPrograms = 0
-		self.bv = False
-		self.rgb = False
 		self.pmc = 16
 		self.kmc = 16
 		self.setupUi()
@@ -112,10 +114,6 @@ class FreepadWindow(QWidget, Creator):
 
 	def setupUi(self):
 		if 'pad' in self.device:
-			if 'bv' in self.device['pad']:
-				self.bv = True
-			if 'rgb' in self.device['pad']:
-				self.rgb = True
 			if 'mc' in self.device['pad']:
 				self.pmc = 0
 		if 'knob' in self.device and 'mc' in self.device['knob']:
@@ -177,20 +175,17 @@ class FreepadWindow(QWidget, Creator):
 				ctlNum = ctl[len(ctlType):]
 				if ctlType == 'p':
 					ctlClass = Pad(ctlNum, self.settings)
-					params = {"bordColorOff" : "#882100", \
-									"bordColorOn" : "#ff2800", \
-									"kit": self.defaultKit, \
-									"bv": self.bv, \
-									"rgb":  self.rgb,
-									"mc": self.pmc}
+					params = {'kit': self.defaultKit, \
+									'bv': 'bv' in self.device['pad'], \
+									'rgb': 'on_red' in self.device['pad'],
+									'mc': self.pmc}
 					ctlClass.sendNoteOn.connect(self._sendNoteOn)
 					ctlClass.sendNoteOff.connect(self._sendNoteOff)
-				elif ctlType == "k":
+				elif ctlType == 'k':
 					ctlClass = Knob(ctlNum)
 					ctlClass.sendControlChanged.connect(self._sendControlChanged)
-					params = {"controls": self.defaultControls, \
-									"mc": self.kmc}
-				#control = Creator.createObj(self.gLayoutd, ctl, ctlClass)
+					params = {'controls': self.defaultControls, \
+									'mc': self.kmc}
 				control = self.createObj(ctl, ctlClass)
 				control.setupUi(params)
 				self.gLayoutd.addWidget(control, l, c, alignment = Qt.AlignmentFlag.AlignCenter)
@@ -258,25 +253,23 @@ class FreepadWindow(QWidget, Creator):
 		layout.addLayout(self.tbLayout)
 
 	def _ctlFromId(self, ctl):
-		sctl = str(ctl)
-		ctlType = sctl.rstrip("0123456789")
-		if ctlType == "p" or ctlType == "pad":
+		ctlType = ctl.rstrip('0123456789')
+		if ctlType == 'p':
 			c = Pad
-		elif ctlType == "k" or ctlType == "knob":
+		elif ctlType == 'k':
 			c = Knob
 		c = self.findChildren(c, ctl)
 		if len(c) >0:
 			return c[0]
 		return False
 
-
 	def _fileDialog(self, fileMode, acceptMode):
-		filename = ""
+		filename = ''
 		dialog = QFileDialog(self)
 		dialog.setFileMode(fileMode)
 		dialog.setAcceptMode(acceptMode)
-		dialog.setNameFilter(self.midiname + " program(*." + self.midiname.lower() + ")")
-		wDir = self.settings.value('Freepad/lastDir', os.getenv("HOME"))
+		dialog.setNameFilter(self.midiname + ' program(*.' + self.midiname.lower() + ')')
+		wDir = self.settings.value('Freepad/lastDir', os.getenv('HOME'))
 		dialog.setDirectory(QDir(wDir))
 		if dialog.exec():
 			filenames = dialog.selectedFiles()
@@ -295,10 +288,6 @@ class FreepadWindow(QWidget, Creator):
 				self._loadProgram(pp)
 
 	def loadProgram(self, event):
-		pgm = self.program()
-		if len(pgm) == 0:
-			self.cprint('"program" not defined in JSON file.')
-			return False
 		filename = ""
 		try:
 			filename = self._fileDialog(QFileDialog.ExistingFile, QFileDialog.AcceptOpen)
@@ -310,7 +299,7 @@ class FreepadWindow(QWidget, Creator):
 
 	def _loadProgram(self, filename):
 		try:
-			with open(filename, "rb") as fp:
+			with open(filename, "r") as fp:
 				lst = json.load(fp)
 				pgm = [0] + lst[0]
 				try:
@@ -333,20 +322,17 @@ class FreepadWindow(QWidget, Creator):
 			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
 
 	def saveProgram(self, event):
-		pgm = self.program()
-		if len(pgm) == 0:
-			self.cprint('"program" not defined in JSON file.')
-			return False
 		try:
 			filename = self._fileDialog(QFileDialog.AnyFile, QFileDialog.AcceptSave)
 			if filename != "":
 					with open(filename, "w") as fp:
-						json.dump([pgm[1:], self.pkNames()], fp)
+						pgm = self.program()
+						json.dump([pgm[1:], self.ctlNames()], fp)
 						fp.close()
 		except Exception as e:
 			self.cprint('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
 
-	def pkNames(self):
+	def ctlNames(self):
 		pkn = []
 		l = 0
 		for line in self.device['layout']:
@@ -376,7 +362,7 @@ class FreepadWindow(QWidget, Creator):
 		else:
 			self.warning("Received midi message of unknown type " + mtype)
 		if self.showMidiMessages:
-			self.statusbar.showMessage('> ' + msg[0:-7]) # without "time=0"
+			self.statusbar.showMessage(self.in_symbol + ' ' + msg[0:-7]) # without "time=0"
 
 	def warning(self, msg, detail =''):
 		self.lblAlert.setText(msg + '.')
@@ -391,8 +377,8 @@ class FreepadWindow(QWidget, Creator):
 		if not 'program' in self.io.pad:
 			return 0
 		if len(self.padNotes) == 0:
-			for i in range(0, len(self.io.pad["program"])):
-				ctlname = self.io.pad["program"][i]
+			for i in range(0, len(self._program)):
+				ctlname = self._program[i]
 				if (ctlname[0:1] == "p") and (ctlname[-5:] == "_note"):
 					val = self.getValue(ctlname)
 					self.padNotes.append(str(val))
@@ -406,9 +392,9 @@ class FreepadWindow(QWidget, Creator):
 
 	def _padFromProgramChange(self, pc):
 		if len(self.padProgramChanges) == 0:
-			for i in range(0, len(self.io.pad["program"])):
+			for i in range(0, len(self._program)):
 				try:
-					ctlname = self.io.pad["program"][i]
+					ctlname = self._program[i]
 				except:
 					raise PadException(ctlname + " not found in program.")
 				if (ctlname[0:1] == "p") and (ctlname[-3:] == "_pc"):
@@ -424,9 +410,9 @@ class FreepadWindow(QWidget, Creator):
 
 	def _kFromControlChange(self, cc):
 		if len(self.padControlChanges) == 0:
-			for i in range(0, len(self.io.pad["program"])):
+			for i in range(0, len(self._program)):
 				try:
-					ctlname = self.io.pad["program"][i]
+					ctlname = self._program[i]
 				except:
 					raise PadException(ctlname + " not found in program.")
 				if (ctlname[0:1] == "k") and (ctlname[-3:] == "_cc"):
@@ -504,13 +490,21 @@ class FreepadWindow(QWidget, Creator):
 
 	def getValue(self, ctlname):
 		val = None
-		ctl = self.findChildren(QWidget, ctlname)
-		if len(ctl) > 0:
-			ctl = ctl[0]
-			if isinstance(ctl, QSpinBox):
-				val = ctl.value()
-			elif isinstance(ctl, QComboBox):
-				val = ctl.currentIndex()
+		if '_' in ctlname and ctlname[ctlname.rindex('_') - len(ctlname) + 1:] in ['red', 'green', 'blue']:
+			color = ctlname[ctlname.rindex('_') - len(ctlname) + 1:]
+			padid = ctlname[0:ctlname.index('_')]
+			onoff = ctlname[ctlname.index('_') + 1:ctlname.rindex('_')]
+			pad = self.findChildren(QWidget, padid)
+			if len(pad) > 0:
+				val = getattr(pad[0], onoff + '_' + color)
+		else:
+			ctl = self.findChildren(QWidget, ctlname)
+			if len(ctl) > 0:
+				ctl = ctl[0]
+				if isinstance(ctl, QSpinBox):
+					val = ctl.value()
+				elif isinstance(ctl, QComboBox):
+					val = ctl.currentIndex()
 		return val
 
 	def closeEvent(self, event):
@@ -518,14 +512,10 @@ class FreepadWindow(QWidget, Creator):
 
 	def program(self):
 		pgm = []
-		if 'program' in self.io.pad:
-			for i in range(0, len(self.io.pad["program"])):
-				try:
-					ctlname = self.io.pad["program"][i]
-				except:
-					raise PadException(ctlname + " not found in program.")
-				val = self.getValue(ctlname)
-				pgm.append(val)
+		for i in range(0, len(self._program)):
+			ctlname = self._program[i]
+			val = self.getValue(ctlname)
+			pgm.append(val)
 		return(pgm)
 
 	def sendToRam(self):
@@ -536,21 +526,23 @@ class FreepadWindow(QWidget, Creator):
 	def sendProgram(self, pid):
 		if self.io.isConnected:
 			msg = self.io.sendProgram(pid, self.program())
-			self.statusbar.showMessage('< ' + msg)
+			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
 
 	def setProgram(self, pgm):
 		if "program" not in self.io.pad:
 			raise PadException('"program" not found in JSON file')
 		if "get_program" not in self.io.pad:
-			raise PadException('"get_program" not found in json file')
-		if len(pgm) != len(self.io.pad["program"] ):
-			raise PadException("received a program with a different size than expected according to json file.")
+			raise PadException('"get_program" not found in JSON file')
+		if "send_program" not in self.io.pad:
+			raise PadException('"send_program" not found in JSON file')
+		if len(pgm) != len(self._program):
+			raise PadException("received a program with a different size than expected according to JSON file.")
 
 		self.settingProgram = True
 		self.unselPrograms()
-		for i in range(0, len(self.device["program"])):
+		for i in range(0, len(self._program)):
 			try:
-				ctlname = self.device["program"][i]
+				ctlname = self._program[i]
 				self.setValue(ctlname, int(pgm[i]))
 			except Exception as e:
 				raise PadException(ctlname + " not found in program: " + str(e))
@@ -610,21 +602,21 @@ class FreepadWindow(QWidget, Creator):
 			mc = self.mc.currentIndex()
 		msg = self.io.sendNoteOn(mc, note)
 		if self.showMidiMessages and msg is not None:
-			self.statusbar.showMessage('< ' + msg)
+			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
 
 	def _sendNoteOff(self, mc, note):
 		if mc == 16:
 			mc = self.mc.currentIndex()
 		msg = self.io.sendNoteOff(mc, note)
 		if self.showMidiMessages and msg is not None:
-			self.statusbar.showMessage('< ' + msg)
+			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
 
 	def _sendControlChanged(self, mc, cc, val):
 		if mc == 16:
 			mc = self.mc.currentIndex()
 		msg = self.io.sendControlChanged(mc, cc, val)
 		if self.showMidiMessages and msg is not None:
-			self.statusbar.showMessage('< ' + msg)
+			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
 
 	def valueChanged(self, value):
 		self.unselPrograms()

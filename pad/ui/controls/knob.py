@@ -14,9 +14,8 @@ class Knob(QWidget, Creator):
 		self.mc = 16
 
 	def setupUi(self, params):
-		for p in ['controls', 'mc']:
-			if p in params:
-				setattr(self, p, params[p])
+		for p in params:
+			setattr(self, p, params[p])
 
 		self.setStyleSheet("Knob #cbName {"
 "background: transparent;"

@@ -36,6 +36,21 @@ class PadIO(QObject):
 		super().__init__(parent)
 		self.pad = pad
 		self.midiname = midiname
+		self.program = []
+		if 'program' in pad:
+			program = pad["program"]
+			for i in range(0, len(program)):
+				ctlname = program[i]
+				if ctlname[0] == 'p' and ctlname != 'pid':
+					pad_vars = pad['pad']
+					for v in range(0, len(pad_vars)):
+						self.program.append(ctlname + '_' + pad_vars[v])
+				elif ctlname[0] == 'k':
+					knob_vars = pad['knob']
+					for v in range(0, len(knob_vars)):
+						self.program.append(ctlname + '_' + knob_vars[v])
+				else:
+					self.program.append(ctlname)
 		self.isConnected = False
 		self.in_port = None
 		self.out_port = None
