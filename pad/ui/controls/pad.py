@@ -8,10 +8,11 @@ from pad.ui.common import Creator, Spinput
 class Pad(QWidget, Creator):
 	sendNoteOn = Signal(int, int, int)
 	sendNoteOff = Signal(int, int, int)
+	keyChanged = Signal(str, str)
 
-	def __init__(self, id, settings, parent = None):
+	def __init__(self, pad_id, settings, parent = None):
 		super().__init__(parent)
-		self.id = id
+		self.pad_id = pad_id
 		self.note = 0
 		self.noteStyle = int(settings.value('noteStyle', 1))
 		self.kit = {}
@@ -37,14 +38,16 @@ class Pad(QWidget, Creator):
 "border: 1px solid rgb(" + str(self.off_red) +',' + str(self.off_green) + ',' + str(self.off_blue) + "); border-radius: 5px;"
 "}"
 "Pad #cbName {"
-"background: transparent;"
+	"max-width: 120px;"
+	"background: transparent;"
 "}"
 "Pad #cbName QListView {"
-"min-width: 150px;"
-"border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;"
+	"min-width: 150px;"
+	"border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;"
 "}"
-'QSlider::groove:vertical {width: 5px; border: 1px solid #000000; background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(255, 170, 0, 255), stop:1 rgba(170, 0, 0, 255));;}'
-			'QSlider::sub-page:vertical {width: 5px; border: 1px solid #000000; background: ' + self.lgradient + ';}'
+'QSlider::groove:vertical {'
+'width: 5px; border: 1px solid #000000; background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(255, 170, 0, 255), stop:1 rgba(170, 0, 0, 255));;}'
+'QSlider::sub-page:vertical {width: 5px; border: 1px solid #000000; background: ' + self.lgradient + ';}'
 'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + self.rgradient + '; selection-color: #ff3800; selection-background-color: #001828;}'
 'QLineEdit:focus, QLineEdit:hover {border: 1px inset #441200;}'
 )
@@ -59,9 +62,8 @@ class Pad(QWidget, Creator):
 
 		self.createObj(u"cbName", QComboBox())
 		self.cbName.setEditable(True)
-		self.cbName.setMaximumWidth(115)
 		self.cbName.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
-		self.cbName.addItem(u"Pad " + self.id)
+		self.cbName.addItem(u"Pad " + self.pad_id)
 		if self.kit is not None:
 			for note in self.kit:
 				self.cbName.addItem(self.kit[note])
@@ -69,11 +71,11 @@ class Pad(QWidget, Creator):
 
 		self.btnNoteHL = QHBoxLayout()
 		if self.rgb:
-			btnOff = self.createObj("p" + self.id + "_off", QPushButton())
+			btnOff = self.createObj("p" + self.pad_id + "_off", QPushButton())
 			btnOff.setMaximumSize(12, 12)
 			btnOff.setStyleSheet('background-color: rgb(' + str(self.off_red) +',' + str(self.off_green) + ',' + str(self.off_blue) + ');')
 			btnOff.clicked.connect(lambda e: self.chooseColor('off'))
-			btnOn = self.createObj("p" + self.id + "_on", QPushButton())
+			btnOn = self.createObj("p" + self.pad_id + "_on", QPushButton())
 			self.btnNoteHL.addWidget(btnOff, Qt.AlignmentFlag.AlignLeft)
 			btnOn.setMaximumSize(12, 12)
 			btnOn.setStyleSheet('background-color: rgb(' + str(self.on_red) +',' + str(self.on_green) + ',' + str(self.on_blue) + ');')
@@ -90,26 +92,26 @@ class Pad(QWidget, Creator):
 		self.createObj('vl2', QVBoxLayout())
 
 		self.spNote = Spinput()
-		self.spNote.setupUi("p" + self.id + "_note", QCoreApplication.translate("Pad", u"Note", None))
+		self.spNote.setupUi("p" + self.pad_id + "_note", QCoreApplication.translate("Pad", u"Note", None))
 		self.vl2.addWidget(self.spNote)
 
 		self.spCC = Spinput()
-		self.spCC.setupUi("p" + self.id + "_cc", QCoreApplication.translate("Pad", u"CC", None))
+		self.spCC.setupUi("p" + self.pad_id + "_cc", QCoreApplication.translate("Pad", u"CC", None))
 		self.vl2.addWidget(self.spCC)
 
 		self.spPC = Spinput()
-		self.spPC.setupUi("p" + self.id + "_pc", QCoreApplication.translate("Pad", u"PC", None))
+		self.spPC.setupUi("p" + self.pad_id + "_pc", QCoreApplication.translate("Pad", u"PC", None))
 		self.vl2.addWidget(self.spPC)
 
 		if self.bv:
-			self.cbBehavior = self.createObj("p" + self.id + "_bv", QComboBox(self.padLW))
+			self.cbBehavior = self.createObj("p" + self.pad_id + "_bv", QComboBox(self.padLW))
 			self.cbBehavior.addItem("")
 			self.cbBehavior.addItem("")
 			self.cbBehavior.currentIndexChanged.connect(self.valueChanged)
 			self.vl2.addWidget(self.cbBehavior)
 
 		if self.mc < 16:
-			self.cbMC = self.createObj("p" + self.id + "_mc", QComboBox(self.padLW))
+			self.cbMC = self.createObj("p" + self.pad_id + "_mc", QComboBox(self.padLW))
 			for ch in range(1,17):
 				sp = "  " if ch < 10 else ""
 				self.cbMC.addItem(sp + str(ch))
@@ -127,6 +129,7 @@ class Pad(QWidget, Creator):
 		self.vlLevel.addWidget(self.level, 0, Qt.AlignmentFlag.AlignHCenter)
 		# Key
 		self.createObj('leKey', keyEdit())
+		self.leKey.textChanged.connect(lambda: self.keyChanged.emit(self.pad_id, self.leKey.text()))
 		self.vlLevel.addWidget(self.leKey)
 
 		self.hl.addLayout(self.vlLevel)
@@ -204,7 +207,7 @@ class Pad(QWidget, Creator):
 
 	def chooseColor(self, col):
 		color = QColorDialog.getColor()
-		btn = getattr(self, "p" + self.id + "_" + col)
+		btn = getattr(self, "p" + self.pad_id + "_" + col)
 		btn.setStyleSheet('background-color: ' + color.name() + ';')
 		setattr(self, col + '_red', color.red())
 		setattr(self, col + '_green', color.green())

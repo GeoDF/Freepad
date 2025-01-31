@@ -102,6 +102,7 @@ class FreepadWindow(QWidget, Creator):
 		self.padProgramChanges = []
 		self.padControlChanges = []
 		self.programs = []
+		self.padKeymap = {}
 		self.nbPrograms = 0
 		self.pmc = 16
 		self.kmc = 16
@@ -184,6 +185,7 @@ class FreepadWindow(QWidget, Creator):
 									}
 					ctlClass.sendNoteOn.connect(self._sendNoteOn)
 					ctlClass.sendNoteOff.connect(self._sendNoteOff)
+					ctlClass.keyChanged.connect(self._padKeyChanged)
 				elif ctlType == 'k':
 					ctlClass = Knob(ctlNum)
 					ctlClass.sendControlChanged.connect(self._sendControlChanged)
@@ -468,7 +470,6 @@ class FreepadWindow(QWidget, Creator):
 		self.cprint('Received ' + str(data))
 		self.setProgram(data[len(self.io.pad["get_program"].split(",")) - 1:])
 
-
 	# Set an UI value.
 	def setValue(self, ctlname, value):
 		try: 
@@ -624,6 +625,9 @@ class FreepadWindow(QWidget, Creator):
 	def valueChanged(self, value):
 		self.unselPrograms()
 
+	def _padKeyChanged(self, pad_id, key):
+		self.padKeymap[pad_id] = key
+
 	def retranslateUi(self):
 		virtual = "" if self.io.isConnected else "virtual "
 		self.setWindowTitle(QCoreApplication.translate("Pads", u"Freepad " + virtual + self.midiname, None))
@@ -631,16 +635,17 @@ class FreepadWindow(QWidget, Creator):
 			self.btnToRam.setText(QCoreApplication.translate("Pads", u"Send to RAM", None))
 		self.labelMC.setText(QCoreApplication.translate("Pads", u"Midi channel", None))
 
-
-# TODO : map keybord on pad. This will probably won't work. May be we need to capture keyboard events and test
-# its to fire pads when no input control have focus
 	def keyPressEvent(self, event):
-		if isinstance(event, QKeyEvent) and not event.isAutoRepeat() and self.hasFocus():
-			key_text = event.text()
-			print(f"Last Key Pressed: {key_text} " + str(self.hasFocus()))
+		self._keyEvent(event, '_sendNoteOn')
 
 	def keyReleaseEvent(self, event):
-		if isinstance(event, QKeyEvent) and not event.isAutoRepeat() and self.hasFocus():
-			key_text = event.text()
-			print(f"Key Released: {key_text}")
+		self._keyEvent(event, '_sendNoteOff')
 
+	def _keyEvent(self, event, callback):
+		if isinstance(event, QKeyEvent) and not event.isAutoRepeat() and self.hasFocus():
+			key = event.text()
+			if key in self.padKeymap.values():
+				for pad_id in [pad_id for pad_id, k in self.padKeymap.items() if k == key]:
+					pads = self.findChildren(QWidget, 'p' + pad_id)
+					if len(pads) > 0:
+							getattr(pads[0], callback)()
