@@ -626,7 +626,7 @@ class FreepadWindow(QWidget, Creator):
 		self.unselPrograms()
 
 	def _padKeyChanged(self, pad_id, key):
-		self.padKeymap[pad_id] = key
+		self.padKeymap[pad_id] = key.lower()
 
 	def retranslateUi(self):
 		virtual = "" if self.io.isConnected else "virtual "
@@ -643,7 +643,7 @@ class FreepadWindow(QWidget, Creator):
 
 	def _keyEvent(self, event, callback):
 		if isinstance(event, QKeyEvent) and not event.isAutoRepeat() and self.hasFocus():
-			key = event.text()
+			key = event.text().lower()
 			if key in self.padKeymap.values():
 				for pad_id in [pad_id for pad_id, k in self.padKeymap.items() if k == key]:
 					pads = self.findChildren(QWidget, 'p' + pad_id)
