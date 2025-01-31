@@ -82,24 +82,27 @@ class Pad(QWidget, Creator):
 			self.btnNoteHL.addWidget(btnOn, Qt.AlignmentFlag.AlignRight)
 		self.verticalLayout.addLayout(self.btnNoteHL)
 
+		self.createObj('hl', QHBoxLayout())
+		self.createObj('vl2', QVBoxLayout())
+
 		self.spNote = Spinput()
 		self.spNote.setupUi("p" + self.id + "_note", QCoreApplication.translate("Pad", u"Note", None))
-		self.verticalLayout.addWidget(self.spNote)
+		self.vl2.addWidget(self.spNote)
 
 		self.spCC = Spinput()
 		self.spCC.setupUi("p" + self.id + "_cc", QCoreApplication.translate("Pad", u"CC", None))
-		self.verticalLayout.addWidget(self.spCC)
+		self.vl2.addWidget(self.spCC)
 
 		self.spPC = Spinput()
 		self.spPC.setupUi("p" + self.id + "_pc", QCoreApplication.translate("Pad", u"PC", None))
-		self.verticalLayout.addWidget(self.spPC)
+		self.vl2.addWidget(self.spPC)
 
 		if self.bv:
 			self.cbBehavior = self.createObj("p" + self.id + "_bv", QComboBox(self.padLW))
 			self.cbBehavior.addItem("")
 			self.cbBehavior.addItem("")
 			self.cbBehavior.currentIndexChanged.connect(self.valueChanged)
-			self.verticalLayout.addWidget(self.cbBehavior)
+			self.vl2.addWidget(self.cbBehavior)
 
 		if self.mc < 16:
 			self.cbMC = self.createObj("p" + self.id + "_mc", QComboBox(self.padLW))
@@ -110,7 +113,10 @@ class Pad(QWidget, Creator):
 			self.cbMC.setCurrentIndex(16)
 			self.mc = 16
 			self.cbMC.currentIndexChanged.connect(self.mcChanged)
-			self.verticalLayout.addWidget(self.cbMC)
+			self.vl2.addWidget(self.cbMC)
+
+		self.hl.addLayout(self.vl2)
+		self.verticalLayout.addLayout(self.hl)
 
 		self.setFixedSize(self.padLW.sizeHint())
 
