@@ -1,7 +1,7 @@
 # Freepad
 Free editor for Akai LPD8 midi pads controller
 
-![freepad_01](https://github.com/user-attachments/assets/eb0b693f-c8a3-45e3-877e-59fe53157667)
+![freepad_01](https://github.com/user-attachments/assets/b4e7dae0-ece2-4e8c-91b8-73474cb06438)
 
 Features:
 - Virtual pad : send MIDI notes and control change messages.
