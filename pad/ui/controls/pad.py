@@ -232,7 +232,7 @@ class Level(QSlider):
 		self.setMinimum(0)
 		self.setMaximum(127)
 		self.setOrientation(Qt.Orientation.Vertical)
-		self.defaultVelocity = 64 # velocity when sending midi notes
+		self.defaultVelocity = 80 # velocity when sending midi notes
 		self._settingVelocity = False
 		self.valueChanged.connect(self.setDefaultVelocity)
 

@@ -320,6 +320,8 @@ class FreepadWindow(QWidget, Creator):
 							key = pk[2]
 							ctl.leKey.setText(key)
 							self.padKeymap[ctl.pad_id] = key
+							if len(pk) > 3:
+								ctl.level.setDefaultVelocity(pk[3])
 				self.setProgram(pgm)
 				if self.io.isConnected:
 					self.sendToRam()
@@ -348,7 +350,7 @@ class FreepadWindow(QWidget, Creator):
 				ctl = self._ctlFromId(control)
 				if ctl is not False:
 					if isinstance(ctl, Pad):
-						pkn.append([control, ctl.cbName.lineEdit().text(), ctl.leKey.text()])
+						pkn.append([control, ctl.cbName.lineEdit().text(), ctl.leKey.text(), ctl.level.defaultVelocity])
 					else:
 						pkn.append([control, ctl.cbName.lineEdit().text()])
 		return pkn
