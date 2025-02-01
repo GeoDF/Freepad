@@ -199,7 +199,7 @@ class MidiConnectionListener(QObject):
 		self.timer.stop()
 		del self.timer
 		self.deleteLater()
-
+		self.thread().quit()
 
 	def listenMidiConnections(self):
 		_changed = False
