@@ -54,7 +54,8 @@ class Pad(QWidget, Creator):
 '}'
 'QSlider::sub-page:vertical {'
 	'width: 5px; border: 1px solid #000000; background: ' + self.lgradient + ';}'
-'QSlider::handle:vertical:focus {width: 20px; margin-left: -5px; margin-right: -5px; height: 5px; border: 1px solid #882200; border-radius: 3px; background: #442200;}'
+'QSlider::handle:vertical:focus {width: 22px; margin-left: -4px; margin-right: -6px; height: 5px; border: 1px outset #882200; border-radius: 3px; background: #441100;}'
+'QSlider::handle:vertical:hover {background: #882200;}'
 'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + self.rgradient + '; selection-color: #ff3800; selection-background-color: #001828;}'
 'QLineEdit:focus, QLineEdit:hover {border: 1px inset #441200;}'
 )
