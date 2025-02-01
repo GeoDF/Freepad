@@ -306,22 +306,23 @@ class FreepadWindow(QWidget, Creator):
 		try:
 			with open(filename, "r") as fp:
 				lst = json.load(fp)
-				pgm = [0] + lst[0]
-				try:
-					for pk in lst[1]:
-						ctlname = pk[0]
-						pkName = pk[1]
-						ctl = self._ctlFromId(ctlname)
-						if ctl is not False:
-							ctl.cbName.lineEdit().setText(pkName)
-				except Exception as e:
-					self.cprint("Error while reading names from backup: " + str(e))
 				fp.close()
-
+				pgm = [0] + lst[0]
+				for pk in lst[1]:
+					ctlname = pk[0]
+					pkName = pk[1]
+					ctl = self._ctlFromId(ctlname)
+					if ctl is not False:
+						ctl.cbName.lineEdit().setText(pkName)
+						if isinstance(ctl, Pad):
+							key = pk[2]
+							ctl.leKey.setText(key)
+							self.padKeymap[ctl.pad_id] = key
 				self.setProgram(pgm)
 				if self.io.isConnected:
 					self.sendToRam()
 				self.unselPrograms()
+				self.setFocus() # to activate keyboard keys
 
 		except Exception as e:
 			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
@@ -332,24 +333,25 @@ class FreepadWindow(QWidget, Creator):
 			if filename != "":
 					with open(filename, "w") as fp:
 						pgm = self.program()
-						json.dump([pgm[1:], self.ctlNames()], fp)
+						json.dump([pgm[1:], self._ctlVars()], fp)
 						fp.close()
 		except Exception as e:
 			self.cprint('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
 
-	def ctlNames(self):
+	# return control names and keyboard keys
+	def _ctlVars(self):
 		pkn = []
-		l = 0
 		for line in self.device['layout']:
-			l = l + 1
-			c = 0
 			for control in line:
 				ctl = self._ctlFromId(control)
 				if ctl is not False:
-					pkn.append([control, ctl.cbName.lineEdit().text()])
-				c = c + 1
-			l = l + 1
+					if isinstance(ctl, Pad):
+						pkn.append([control, ctl.cbName.lineEdit().text(), ctl.leKey.text()])
+					else:
+						pkn.append([control, ctl.cbName.lineEdit().text()])
 		return pkn
+
+
 
 	def receivedMidi(self, msg):
 		m = msg.split(" ")
