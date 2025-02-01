@@ -34,7 +34,7 @@ class FreepadApp(QApplication):
 	def __init__(self, args):
 		super().__init__(args)
 		self.setApplicationName('Freepad')
-		self.setApplicationVersion('0.9.4')
+		self.setApplicationVersion('0.9.5')
 		self.setApplicationDisplayName('Freepad')
 		self.setStyle("fusion") # required
 		self.knownPads = {}
