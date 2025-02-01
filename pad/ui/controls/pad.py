@@ -50,7 +50,7 @@ class Pad(QWidget, Creator):
 '}'
 'QSlider::groove:vertical {'
 	'width: 5px; border: 1px solid #111111;'
-	'background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(255, 170, 0, 255), stop:1 rgba(170, 0, 0, 255));'
+	'background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(128, 85, 0, 255), stop:1 rgba(170, 0, 0, 255));'
 '}'
 'QSlider::sub-page:vertical {'
 	'width: 5px; border: 1px solid #000000; background: ' + self.lgradient + ';}'
