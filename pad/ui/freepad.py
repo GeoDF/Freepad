@@ -221,6 +221,8 @@ class FreepadWindow(QWidget, Creator):
 		self.gLayoutd.addLayout(self.hLayoutMC, l + 1, 0, 1, c)
 		self.hLayout.addLayout(self.gLayoutd)
 		self.vLayout.addLayout(self.hLayout)
+		# Margin bottom before status bar
+		self.vLayout.addItem(QSpacerItem(10, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
 		if self.showMidiMessages:
 			self.createObj(u"statusbar", QStatusBar())
