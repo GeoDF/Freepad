@@ -6,11 +6,17 @@ from qtpy.QtCore import QObject, QThread, QTimer, Signal
 class Mid(object):
 	@staticmethod
 	def get_input_names():
-		return mido.get_input_names()
+		try:
+			return mido.get_input_names()
+		except:
+			return []
 
 	@staticmethod
 	def get_output_names():
-		return mido.get_output_names()
+		try:
+			return mido.get_output_names()
+		except:
+			return []
 
 	# the midiname format depends on OS
 	@staticmethod
