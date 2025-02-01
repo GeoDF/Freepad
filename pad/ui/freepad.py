@@ -1,7 +1,7 @@
 import os, json
 
 from qtpy.QtCore import QCoreApplication, QDir, QMetaObject, Qt, QTimer
-from qtpy.QtWidgets import QCheckBox, QComboBox, QFileDialog, QGridLayout, \
+from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGridLayout, \
 	QHBoxLayout, QLabel, QLayout, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QStatusBar, QSpinBox, \
 	QStyle, QVBoxLayout, QWidget
 from qtpy.QtGui import QIcon, QKeyEvent
@@ -297,7 +297,9 @@ class FreepadWindow(QWidget, Creator):
 		try:
 			filename = self._fileDialog(QFileDialog.ExistingFile, QFileDialog.AcceptOpen)
 			if filename != "":
+				QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 				self._loadProgram(filename)
+				QApplication.restoreOverrideCursor()
 
 		except Exception as e:
 			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
@@ -314,7 +316,7 @@ class FreepadWindow(QWidget, Creator):
 					ctl = self._ctlFromId(ctlname)
 					if ctl is not False:
 						ctl.cbName.lineEdit().setText(pkName)
-						if isinstance(ctl, Pad):
+						if isinstance(ctl, Pad) and len(pk) > 2:
 							key = pk[2]
 							ctl.leKey.setText(key)
 							self.padKeymap[ctl.pad_id] = key
@@ -479,6 +481,14 @@ class FreepadWindow(QWidget, Creator):
 				if value != 0: # value is zero when loading a program file
 					pgm = self.findChildren(QWidget, ctlname + str(value))
 					pgm[0].select()
+			elif '_' in ctlname and ctlname[ctlname.rindex('_') - len(ctlname) + 1:] in ['red', 'green', 'blue']:
+				color = ctlname[ctlname.rindex('_') - len(ctlname) + 1:]
+				padid = ctlname[0:ctlname.index('_')]
+				onoff = ctlname[ctlname.index('_') + 1:ctlname.rindex('_')]
+				pad = self.findChildren(QWidget, padid)
+				if len(pad) > 0:
+					setattr(pad[0], onoff + '_' + color, value)
+					pad[0].lightOff()
 			else:
 				ctl = self.findChildren(QWidget, ctlname)
 				if len(ctl) > 0:
@@ -487,8 +497,6 @@ class FreepadWindow(QWidget, Creator):
 						ctl.setValue(int(value))
 					elif isinstance(ctl, QComboBox):
 						ctl.setCurrentIndex(int(value))
-					elif isinstance(ctl, QPushButton):
-						print('setValue: to do for QPushButton ...')
 				else:
 					print('setValue: ' + ctlname + ' not found in ' + str(self))
 		except Exception as e:
@@ -537,10 +545,6 @@ class FreepadWindow(QWidget, Creator):
 	def setProgram(self, pgm):
 		if "program" not in self.io.pad:
 			raise PadException('"program" not found in JSON file')
-		if "get_program" not in self.io.pad:
-			raise PadException('"get_program" not found in JSON file')
-		if "send_program" not in self.io.pad:
-			raise PadException('"send_program" not found in JSON file')
 		if len(pgm) != len(self._program):
 			raise PadException("received a program with a different size than expected according to JSON file.")
 

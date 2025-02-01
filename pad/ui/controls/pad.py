@@ -1,6 +1,6 @@
 from qtpy.QtCore import QCoreApplication, QMetaObject, QSize, Qt, QTimer, Signal
 from qtpy.QtWidgets import QColorDialog, QComboBox, QFrame, QGraphicsDropShadowEffect, QHBoxLayout, \
-		QLineEdit, QPushButton, QSlider, QVBoxLayout, QWidget
+		QLineEdit, QPushButton, QSlider, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 from qtpy.QtGui import QColor
 
 from pad.ui.common import Creator, Spinput
@@ -45,9 +45,16 @@ class Pad(QWidget, Creator):
 	"min-width: 150px;"
 	"border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;"
 "}"
+'QSlider::vertical {'
+	'width: 22px;'
+'}'
 'QSlider::groove:vertical {'
-'width: 5px; border: 1px solid #000000; background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(255, 170, 0, 255), stop:1 rgba(170, 0, 0, 255));;}'
-'QSlider::sub-page:vertical {width: 5px; border: 1px solid #000000; background: ' + self.lgradient + ';}'
+	'width: 5px; border: 1px solid #111111;'
+	'background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(255, 170, 0, 255), stop:1 rgba(170, 0, 0, 255));'
+'}'
+'QSlider::sub-page:vertical {'
+	'width: 5px; border: 1px solid #000000; background: ' + self.lgradient + ';}'
+'QSlider::handle:vertical:focus {width: 20px; margin-left: -5px; margin-right: -5px; height: 5px; border: 1px solid #882200; border-radius: 3px; background: #442200;}'
 'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + self.rgradient + '; selection-color: #ff3800; selection-background-color: #001828;}'
 'QLineEdit:focus, QLineEdit:hover {border: 1px inset #441200;}'
 )
@@ -127,10 +134,12 @@ class Pad(QWidget, Creator):
 		self.createObj('vlLevel', QVBoxLayout())
 		self.createObj('level', Level(self))
 		self.vlLevel.addWidget(self.level, 0, Qt.AlignmentFlag.AlignHCenter)
+		self.vlLevel.addItem(QSpacerItem(15, 4, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum))
 		# Key
 		self.createObj('leKey', keyEdit())
 		self.leKey.textChanged.connect(lambda: self.keyChanged.emit(self.pad_id, self.leKey.text()))
 		self.vlLevel.addWidget(self.leKey)
+		self.vlLevel.addItem(QSpacerItem(15, 2, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum))
 
 		self.hl.addLayout(self.vlLevel)
 		self.verticalLayout.addLayout(self.hl)
