@@ -184,7 +184,7 @@ class FreepadWindow(QWidget, Creator):
 					elif ctlType == 'k':
 						ctlClass = Knob(ctlNum)
 						ctlClass.sendControlChanged.connect(self._sendControlChanged)
-						params = {'controls': self.defaultControls, \
+						params = {'midi_controls': self.defaultControls, \
 										'mc': self.kmc}
 					control = self.createObj(ctl, ctlClass)
 					subcontrols = control.setupUi(params)
