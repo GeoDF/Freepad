@@ -16,12 +16,19 @@ class Pad(QWidget, Creator):
 		self.note = 0
 		self.noteStyle = int(settings.value('noteStyle', 1))
 		self.kit = {}
-		self.off_red = 136
-		self.off_green = 33
-		self.off_blue = 0
-		self.on_red = 255
-		self.on_green = 40
-		self.on_blue = 0
+		# Midi require values < 128, so colors are split into two bytes
+		self.off_red1 = 1
+		self.off_red2 = 9
+		self.off_green1 = 0
+		self.off_green2 = 33
+		self.off_blue1 = 0
+		self.off_blue2 = 0
+		self.on_red1 = 1
+		self.on_red2 = 127
+		self.on_green1 = 0
+		self.on_green2 = 40
+		self.on_blue1 = 0
+		self.on_blue2 = 0
 		self.bv = False
 		self.rgb = False
 		self.mc = 16
@@ -31,11 +38,32 @@ class Pad(QWidget, Creator):
 		]
 
 	def setupUi(self, params):
+		subcontrols = {}
 		for p in params:
 			setattr(self, p, params[p])
 
+		on_red = 128 * self.on_red1 + self.on_red2
+		on_green = 128 * self.on_green1 + self.on_green2
+		on_blue = 128 * self.on_blue1 + self.on_blue2
+		off_red = 128 * self.off_red1 + self.off_red2
+		off_green = 128 * self.off_green1 + self.off_green2
+		off_blue = 128 * self.off_blue1 + self.off_blue2
+		vn = 'p' + self.pad_id
+		subcontrols[vn + '_off_red1'] = self
+		subcontrols[vn + '_off_red2'] = self
+		subcontrols[vn + '_off_green1'] = self
+		subcontrols[vn + '_off_green2'] = self
+		subcontrols[vn + '_off_blue1'] = self
+		subcontrols[vn + '_off_blue2'] = self
+		subcontrols[vn + '_on_red1'] = self
+		subcontrols[vn + '_on_red2'] = self
+		subcontrols[vn + '_on_green1'] = self
+		subcontrols[vn + '_on_green2'] = self
+		subcontrols[vn + '_on_blue1'] = self
+		subcontrols[vn + '_on_blue2'] = self
+
 		self.setStyleSheet("Pad #padLW {"
-"border: 1px solid rgb(" + str(self.off_red) +',' + str(self.off_green) + ',' + str(self.off_blue) + "); border-radius: 5px;"
+"border: 1px solid rgb(" + str(off_red) +',' + str(off_green) + ',' + str(off_blue) + "); border-radius: 5px;"
 "}"
 "Pad #cbName {"
 	"max-width: 120px;"
@@ -45,8 +73,6 @@ class Pad(QWidget, Creator):
 	"min-width: 150px;"
 	"border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;"
 "}"
-'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + FREEPAD_RGRADIENT + '; selection-color: #ff3800; selection-background-color: #001828;}'
-'QLineEdit:focus, QLineEdit:hover {border: 1px inset #441200;}'
 )
 
 		# Pad main layout
@@ -74,15 +100,19 @@ class Pad(QWidget, Creator):
 
 		self.btnNoteHL = QHBoxLayout()
 		if self.rgb:
-			btnOff = self.createObj("p" + self.pad_id + "_off", QPushButton())
+			ctlname = 'p' + self.pad_id + '_off'
+			btnOff = self.createObj(ctlname, QPushButton())
 			btnOff.setMaximumSize(12, 12)
-			btnOff.setStyleSheet('background-color: rgb(' + str(self.off_red) +',' + str(self.off_green) + ',' + str(self.off_blue) + ');')
+			btnOff.setStyleSheet('background-color: rgb(' + str(off_red) +',' + str(off_green) + ',' + str(off_blue) + ');')
 			btnOff.clicked.connect(lambda e: self.chooseColor('off'))
-			btnOn = self.createObj("p" + self.pad_id + "_on", QPushButton())
+			subcontrols[ctlname] = btnOff
+			ctlname = 'p' + self.pad_id + '_on'
+			btnOn = self.createObj(ctlname, QPushButton())
 			self.btnNoteHL.addWidget(btnOff, Qt.AlignmentFlag.AlignLeft)
 			btnOn.setMaximumSize(12, 12)
-			btnOn.setStyleSheet('background-color: rgb(' + str(self.on_red) +',' + str(self.on_green) + ',' + str(self.on_blue) + ');')
+			btnOn.setStyleSheet('background-color: rgb(' + str(on_red) +',' + str(on_green) + ',' + str(on_blue) + ');')
 			btnOn.clicked.connect(lambda e: self.chooseColor('on'))
+			subcontrols[ctlname] = btnOn
 		self.createObj(u"btnNote", QPushButton())
 		self.btnNote.setStyleSheet("margin: 0; padding: 3px; border-radius: 3px;")
 		self.btnNote.setMaximumWidth(60)
@@ -94,26 +124,35 @@ class Pad(QWidget, Creator):
 		self.createObj('hlp', QHBoxLayout())
 		self.createObj('vl2', QVBoxLayout())
 
+		ctlname = 'p' + self.pad_id + '_note'
 		self.spNote = Spinput()
-		self.spNote.setupUi("p" + self.pad_id + "_note", QCoreApplication.translate("Pad", u"Note", None))
+		self.spNote.setupUi(ctlname, QCoreApplication.translate("Pad", u"Note", None))
 		self.vl2.addWidget(self.spNote)
+		subcontrols[ctlname] = self.spNote.spin
 
+		ctlname = 'p' + self.pad_id + '_cc'
 		self.spCC = Spinput()
-		self.spCC.setupUi("p" + self.pad_id + "_cc", QCoreApplication.translate("Pad", u"CC", None))
+		self.spCC.setupUi(ctlname, QCoreApplication.translate("Pad", u"CC", None))
 		self.vl2.addWidget(self.spCC)
+		subcontrols[ctlname] = self.spCC.spin
 
+		ctlname = 'p' + self.pad_id + '_pc'
 		self.spPC = Spinput()
-		self.spPC.setupUi("p" + self.pad_id + "_pc", QCoreApplication.translate("Pad", u"PC", None))
+		self.spPC.setupUi(ctlname, QCoreApplication.translate("Pad", u"PC", None))
 		self.vl2.addWidget(self.spPC)
+		subcontrols[ctlname] = self.spPC.spin
 
 		if self.bv:
-			self.cbBehavior = self.createObj("p" + self.pad_id + "_bv", QComboBox(self.padLW))
+			ctlname = 'p' + self.pad_id + '_bv'
+			self.cbBehavior = self.createObj(ctlname, QComboBox(self.padLW))
 			self.cbBehavior.addItem("")
 			self.cbBehavior.addItem("")
 			self.cbBehavior.currentIndexChanged.connect(self.valueChanged)
 			self.vl2.addWidget(self.cbBehavior)
+			subcontrols[ctlname] = self.cbBehavior
 
 		if self.mc < 16:
+			ctlname = 'p' + self.pad_id + '_mc'
 			self.cbMC = self.createObj("p" + self.pad_id + "_mc", QComboBox(self.padLW))
 			for ch in range(1,17):
 				sp = "  " if ch < 10 else ""
@@ -123,6 +162,7 @@ class Pad(QWidget, Creator):
 			self.mc = 16
 			self.cbMC.currentIndexChanged.connect(self.mcChanged)
 			self.vl2.addWidget(self.cbMC)
+			subcontrols[ctlname] = self.cbMC
 
 		self.hlp.addLayout(self.vl2)
 
@@ -153,6 +193,7 @@ class Pad(QWidget, Creator):
 
 		QMetaObject.connectSlotsByName(self)
 		self.noteChanged(0)
+		return subcontrols
 		# setupUi
 
 	def retranslateUi(self):
@@ -181,9 +222,14 @@ class Pad(QWidget, Creator):
 
 	def lightOn(self, velocity):
 		try:
-			self.padLW.setStyleSheet('#padLW {border-color: rgb(' + str(self.on_red) +',' + str(self.on_green) + ',' + str(self.on_blue) + ');}')
+			red = 128 * self.on_red1 + self.on_red2
+			green = 128 * self.on_green1 + self.on_green2
+			blue = 128 * self.on_blue1 + self.on_blue2
+			self.padLW.setStyleSheet(
+'#padLW {border-color: rgb(' + str(red) + ',' + str(green) + ',' + str(blue) + ');}'
+)
 			shadow = QGraphicsDropShadowEffect()
-			shadow.setColor(QColor(self.on_red, self.on_green, self.on_blue))
+			shadow.setColor(QColor(red, green, blue))
 			shadow.setOffset(1, 1)
 			shadow.setBlurRadius(12)
 			self.setGraphicsEffect(shadow)
@@ -193,7 +239,12 @@ class Pad(QWidget, Creator):
 
 	def lightOff(self):
 		try:
-			self.padLW.setStyleSheet('#padLW {border-color: rgb(' + str(self.off_red) +',' + str(self.off_green) + ',' + str(self.off_blue) + ');}')
+			self.padLW.setStyleSheet(
+'#padLW {border-color: rgb(' + \
+str(128 * self.off_red1 + self.off_red2) + ',' + \
+str(128 * self.off_green1 + self.off_green2) + ',' + \
+str(128 * self.off_blue1 + self.off_blue2) + ');}'
+)
 			self.setGraphicsEffect(None)
 			self.level.setVelocity(0)
 		except:
@@ -211,9 +262,15 @@ class Pad(QWidget, Creator):
 		color = QColorDialog.getColor()
 		btn = getattr(self, "p" + self.pad_id + "_" + col)
 		btn.setStyleSheet('background-color: ' + color.name() + ';')
-		setattr(self, col + '_red', color.red())
-		setattr(self, col + '_green', color.green())
-		setattr(self, col + '_blue', color.blue())
+		red = color.red()
+		green = color.green()
+		blue = color.blue()
+		setattr(self, col + '_red1', int(red / 128))
+		setattr(self, col + '_red2', red % 128)
+		setattr(self, col + '_green1', int(green / 128))
+		setattr(self, col + '_green2', green % 128)
+		setattr(self, col + '_blue1', int(blue / 128))
+		setattr(self, col + '_blue2', blue % 128)
 		if col == 'off':
 			self.lightOff()
 
@@ -265,6 +322,10 @@ class keyEdit(QLineEdit):
 		self.setFixedSize(QSize(20,20))
 		self.setMaxLength(1)
 		self.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+		self.setStyleSheet(
+'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + FREEPAD_RGRADIENT + '; selection-color: #ff3800; selection-background-color: #001828;}'
+'QLineEdit:focus, QLineEdit:hover {border: 1px inset #441200;}'
+)
 
 	def focusInEvent(self, *args, **kwargs):
 		QTimer.singleShot(0, self.selectAll)

@@ -99,10 +99,11 @@ class FreepadWindow(QWidget, Creator):
 		self.padProgramChanges = []
 		self.padControlChanges = []
 		self.programs = []
+		self._controls = {} # controls from varnames
 		self.padKeymap = {}
 		self.nbPrograms = 0
-		self.pmc = 16
-		self.kmc = 16
+		self.pmc = 16 # default pad midi channel
+		self.kmc = 16 # default knob midi channel
 		self.setupUi()
 		if self.io.isConnected:
 			self.getProgram("1")
@@ -140,6 +141,7 @@ class FreepadWindow(QWidget, Creator):
 				pgui.setEnabled(self.io.isConnected)
 				pglayout.addWidget(pgui, alignment = Qt.AlignmentFlag.AlignCenter)
 				self.vLayoutg.addLayout(pglayout)
+				self._controls['pid' + str(pg)] = pgui
 
 			self.createObj(u"hlToRam", QHBoxLayout())
 			self.createObj(u"btnToRam", QPushButton())
@@ -166,34 +168,31 @@ class FreepadWindow(QWidget, Creator):
 		for line in self.device['layout']:
 			c = 0
 			for ctl in line:
-				ctlType = ctl.rstrip("0123456789")
-				ctlNum = ctl[len(ctlType):]
-				if ctlType == 'p':
-					ctlClass = Pad(ctlNum, self.settings)
-					params = {'kit': self.defaultKit, \
-									'bv': 'bv' in self.device['pad'], \
-									'rgb': 'on_red' in self.device['pad'],
-									'mc': self.pmc
-									}
-					ctlClass.sendNoteOn.connect(self._sendNoteOn)
-					ctlClass.sendNoteOff.connect(self._sendNoteOff)
-					ctlClass.keyChanged.connect(self._padKeyChanged)
-				elif ctlType == 'k':
-					ctlClass = Knob(ctlNum)
-					ctlClass.sendControlChanged.connect(self._sendControlChanged)
-					params = {'controls': self.defaultControls, \
-									'mc': self.kmc}
-				control = self.createObj(ctl, ctlClass)
-				control.setupUi(params)
-				#control=QLabel()
-				#control.setStyleSheet('background:green;')
-				#control.setMinimumSize(100, 150)
-				
-				
-				self.gLayout.addWidget(control, l, c, alignment = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+				if ctl != '':
+					ctlType = ctl.rstrip("0123456789")
+					ctlNum = ctl[len(ctlType):]
+					if ctlType == 'p':
+						ctlClass = Pad(ctlNum, self.settings)
+						params = {'kit': self.defaultKit, \
+										'bv': 'bv' in self.device['pad'], \
+										'rgb': 'on_red1' in self.device['pad'],
+										'mc': self.pmc
+										}
+						ctlClass.sendNoteOn.connect(self._sendNoteOn)
+						ctlClass.sendNoteOff.connect(self._sendNoteOff)
+						ctlClass.keyChanged.connect(self._padKeyChanged)
+					elif ctlType == 'k':
+						ctlClass = Knob(ctlNum)
+						ctlClass.sendControlChanged.connect(self._sendControlChanged)
+						params = {'controls': self.defaultControls, \
+										'mc': self.kmc}
+					control = self.createObj(ctl, ctlClass)
+					subcontrols = control.setupUi(params)
+					self.gLayout.addWidget(control, l, c, 1, 1, alignment = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+					self._controls[ctl] = control
+					self._controls.update(subcontrols)
 				c = c + 1
 			l = l + 1
-
 
 		self.createObj(u"hLayoutMC", QHBoxLayout())
 		self.hLayoutMC.setContentsMargins(0, 0, 0, 0)
@@ -206,6 +205,8 @@ class FreepadWindow(QWidget, Creator):
 			sp = "  " if ch < 10 else ""
 			self.mc.addItem(sp + str(ch))
 		self.hLayoutMC.addWidget(self.mc)
+		self._controls['mc'] = self.mc
+
 		self.lblAlert = QLabel()
 		self.lblAlert.setAlignment(Qt.AlignmentFlag.AlignCenter)
 		self.lblAlert.setStyleSheet("color: #ff2800;")
@@ -254,17 +255,6 @@ class FreepadWindow(QWidget, Creator):
 		self.btnOptions.clicked.connect(self.showOptionsDialog)
 		layout.addLayout(self.tbLayout)
 
-	def _ctlFromId(self, ctl):
-		ctlType = ctl.rstrip('0123456789')
-		if ctlType == 'p':
-			c = Pad
-		elif ctlType == 'k':
-			c = Knob
-		c = self.findChildren(c, ctl)
-		if len(c) >0:
-			return c[0]
-		return False
-
 	def _fileDialog(self, fileMode, acceptMode):
 		filename = ''
 		dialog = QFileDialog(self)
@@ -295,23 +285,14 @@ class FreepadWindow(QWidget, Creator):
 			filename = self._fileDialog(QFileDialog.ExistingFile, QFileDialog.AcceptOpen)
 			if filename != "":
 				QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-				self._loadProgram(filename)
-				QApplication.restoreOverrideCursor()
-
-		except Exception as e:
-			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
-
-	def _loadProgram(self, filename):
-		try:
-			with open(filename, "r") as fp:
-				lst = json.load(fp)
-				fp.close()
-				pgm = [0] + lst[0]
-				for pk in lst[1]:
-					ctlname = pk[0]
-					pkName = pk[1]
-					ctl = self._ctlFromId(ctlname)
-					if ctl is not False:
+				with open(filename, "r") as fp:
+					lst = json.load(fp)
+					fp.close()
+					pgm = [0] + lst[0]
+					for pk in lst[1]:
+						ctlname = pk[0]
+						pkName = pk[1]
+						ctl = self._controls[ctlname]
 						ctl.cbName.lineEdit().setText(pkName)
 						if isinstance(ctl, Pad) and len(pk) > 2:
 							key = pk[2]
@@ -319,41 +300,45 @@ class FreepadWindow(QWidget, Creator):
 							self.padKeymap[ctl.pad_id] = key
 							if len(pk) > 3:
 								ctl.level.setDefaultVelocity(pk[3])
-				self.setProgram(pgm)
-				if self.io.isConnected:
-					self.sendToRam()
-				self.unselPrograms()
-				self.setFocus() # to activate keyboard keys
+					self.setProgram(pgm)
+					self.unselPrograms()
+					# switch all lights off
+					for line in  self.device['layout']:
+						for ctlid in line:
+							if ctlid[0:1] == 'p':
+								self._controls[ctlid].lightOff()
+					self.setFocus() # to activate keyboard keys
+					if self.io.isConnected:
+						self.sendToRam()
+				QApplication.restoreOverrideCursor()
 
 		except Exception as e:
 			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
 
 	def saveProgram(self, event):
-		try:
+		#try:
 			filename = self._fileDialog(QFileDialog.AnyFile, QFileDialog.AcceptSave)
 			if filename != "":
-					with open(filename, "w") as fp:
-						pgm = self.program()
-						json.dump([pgm[1:], self._ctlVars()], fp)
-						fp.close()
-		except Exception as e:
-			self.cprint('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
+				with open(filename, "w") as fp:
+					pgm = self.program()
+					json.dump([pgm[1:], self._ctlVars()], fp)
+					fp.close()
+		#except Exception as e:
+			#self.cprint('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
 
 	# return control names and keyboard keys
 	def _ctlVars(self):
 		pkn = []
 		for line in self.device['layout']:
 			for control in line:
-				ctl = self._ctlFromId(control)
-				if ctl is not False:
-					if isinstance(ctl, Pad):
-						pkn.append([control, ctl.cbName.lineEdit().text(), ctl.leKey.text(), ctl.level.defaultVelocity])
-					else:
-						pkn.append([control, ctl.cbName.lineEdit().text()])
+				ctl = self._controls[control]
+				if isinstance(ctl, Pad):
+					pkn.append([control, ctl.cbName.lineEdit().text(), ctl.leKey.text(), ctl.level.defaultVelocity])
+				else:
+					pkn.append([control, ctl.cbName.lineEdit().text()])
 		return pkn
 
-
-
+	# slot called when receiving a midi message
 	def receivedMidi(self, msg):
 		m = msg.split(" ")
 		mtype = m[0]
@@ -474,22 +459,22 @@ class FreepadWindow(QWidget, Creator):
 		self.setProgram(data[len(self.io.pad["get_program"].split(",")) - 1:])
 
 	# Set an UI value.
-	def setValue(self, ctlname, value):
+	def setValueOld(self, varname, value):
 		try: 
-			if ctlname == "pid":
+			if varname == "pid":
 				if value != 0: # value is zero when loading a program file
-					pgm = self.findChildren(QWidget, ctlname + str(value))
-					pgm[0].select()
-			elif '_' in ctlname and ctlname[ctlname.rindex('_') - len(ctlname) + 1:] in ['red', 'green', 'blue']:
-				color = ctlname[ctlname.rindex('_') - len(ctlname) + 1:]
-				padid = ctlname[0:ctlname.index('_')]
-				onoff = ctlname[ctlname.index('_') + 1:ctlname.rindex('_')]
-				pad = self.findChildren(QWidget, padid)
-				if len(pad) > 0:
-					setattr(pad[0], onoff + '_' + color, value)
-					pad[0].lightOff()
+					self._controls[varname + str(value)].select()
+			elif '_' in varname and varname[varname.rindex('_') - len(varname) + 1:] in ['red1', 'red2', 'green1', 'green2', 'blue1', 'blue2']:
+				color = varname[varname.rindex('_') - len(varname) + 1:]
+				padid = varname[0:varname.index('_')]
+				onoff = varname[varname.index('_') + 1:varname.rindex('_')]
+				pad = self._controls[padid]
+				setattr(pad, onoff + '_' + color, value)
+				pad.lightOff()
 			else:
-				ctl = self.findChildren(QWidget, ctlname)
+				print(varname)
+				ctl = self.findChildren(QWidget, varname)
+				print('ctl=' + str(ctl) + ' ' + varname + ' ' + str(self._controls.keys()))
 				if len(ctl) > 0:
 					ctl = ctl[0]
 					if isinstance(ctl, QSpinBox):
@@ -497,27 +482,40 @@ class FreepadWindow(QWidget, Creator):
 					elif isinstance(ctl, QComboBox):
 						ctl.setCurrentIndex(int(value))
 				else:
-					print('setValue: ' + ctlname + ' not found in ' + str(self))
+					print('setValue: ' + varname + ' not found in ' + str(self))
 		except Exception as e:
-			self.cprint("Unable to set " + ctlname +" = " + str(value) + ' ' + str(e))
+			self.cprint("Unable to set " + varname +" = " + str(value) + ' ' + str(e))
 
-	def getValue(self, ctlname):
-		val = None
-		if '_' in ctlname and ctlname[ctlname.rindex('_') - len(ctlname) + 1:] in ['red', 'green', 'blue']:
-			color = ctlname[ctlname.rindex('_') - len(ctlname) + 1:]
-			padid = ctlname[0:ctlname.index('_')]
-			onoff = ctlname[ctlname.index('_') + 1:ctlname.rindex('_')]
-			pad = self.findChildren(QWidget, padid)
-			if len(pad) > 0:
-				val = getattr(pad[0], onoff + '_' + color)
-		else:
-			ctl = self.findChildren(QWidget, ctlname)
-			if len(ctl) > 0:
-				ctl = ctl[0]
+	# Set an UI value.
+	def setValue(self, varname, value):
+		try: 
+			if varname == "pid":
+				if value != 0: # value is zero when loading a program file
+					self._controls[varname + str(value)].select()
+			else:
+				ctl = self._controls[varname]
 				if isinstance(ctl, QSpinBox):
-					val = ctl.value()
+					ctl.setValue(int(value))
 				elif isinstance(ctl, QComboBox):
-					val = ctl.currentIndex()
+					ctl.setCurrentIndex(int(value))
+				elif isinstance(ctl, Pad):
+					v = varname[len(ctl.pad_id) + 2:]
+					setattr(ctl, v, value)
+				else:
+					print('setValue: ' + varname + ' not found in ' + str(self))
+		except Exception as e:
+			self.cprint("Unable to set " + varname +" = " + str(value) + ': ' + str(e))
+
+	def getValue(self, varname):
+		if varname not in  self._controls:
+			return None
+		ctl = self._controls[varname]
+		if isinstance(ctl, QSpinBox):
+			val = ctl.value()
+		elif isinstance(ctl, QComboBox):
+			val = ctl.currentIndex()
+		elif isinstance(ctl, Pad):
+			val = getattr(ctl, varname[len(ctl.pad_id) + 2:])
 		return val
 
 	def closeEvent(self, event):
@@ -526,8 +524,8 @@ class FreepadWindow(QWidget, Creator):
 	def program(self):
 		pgm = []
 		for i in range(0, len(self._program)):
-			ctlname = self._program[i]
-			val = self.getValue(ctlname)
+			varname = self._program[i]
+			val = self.getValue(varname)
 			pgm.append(val)
 		return(pgm)
 
@@ -551,10 +549,10 @@ class FreepadWindow(QWidget, Creator):
 		self.unselPrograms()
 		for i in range(0, len(self._program)):
 			try:
-				ctlname = self._program[i]
-				self.setValue(ctlname, int(pgm[i]))
+				varname = self._program[i]
+				self.setValue(varname, int(pgm[i]))
 			except Exception as e:
-				raise PadException(ctlname + " not found in program: " + str(e))
+				raise PadException(varname + " not found in program: " + str(e))
 		self.settingProgram = False
 
 

@@ -5,7 +5,7 @@
 		["p4","p5","p6","k4","k5","k6"],
 		["p1","p2","p3","k7","k8","k9"]
 	],
-	"pad": ["note", "pc", "cc", "bv", "off_red", "off_green", "off_blue", "on_red", "on_green", "on_blue", "mc"],
+	"pad": ["note", "pc", "cc", "bv", "off_red1", "off_red2", "off_green1", "off_green2", "off_blue1",  "off_blue2", "on_red1",  "on_red2", "on_green1", "on_green2", "on_blue1", "on_blue2", "mc"],
 	"knob": ["cc", "lo", "hi", "mc"],
 	"program": ["pid", "mc",
 		"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9",

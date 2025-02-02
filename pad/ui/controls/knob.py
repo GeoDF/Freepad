@@ -10,10 +10,11 @@ class Knob(QWidget, Creator):
 	def __init__(self, title, parent = None):
 		super().__init__(parent)
 		self.kTitle = title
-		self.controls = {}
+		self.midi_controls = {}
 		self.mc = 16
 
 	def setupUi(self, params):
+		subcontrols = {}
 		for p in params:
 			setattr(self, p, params[p])
 
@@ -40,26 +41,33 @@ class Knob(QWidget, Creator):
 		self.cbName.setEditable(True)
 		self.cbName.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
 		self.cbName.addItem(u"K " + self.kTitle)
-		if self.controls is not None:
-			for cc in self.controls:
-				self.cbName.addItem(self.controls[cc])
+		if self.midi_controls is not None:
+			for cc in self.midi_controls:
+				self.cbName.addItem(self.midi_controls[cc])
 		self.cbName.setMaximumWidth(120)
 		self.verticalLayout.addWidget(self.cbName)
 
+		ctlname = 'k' + self.kTitle + '_cc'
 		self.spCC = Spinput()
-		self.spCC.setupUi("k" + self.kTitle + "_cc", QCoreApplication.translate("Knob", u"CC", None))
+		self.spCC.setupUi(ctlname, QCoreApplication.translate("Knob", u"CC", None))
 		self.verticalLayout.addWidget(self.spCC)
+		subcontrols[ctlname] = self.spCC.spin
 
+		ctlname = 'k' + self.kTitle + '_lo'
 		self.spLO = Spinput()
-		self.spLO.setupUi("k" + self.kTitle + "_lo", QCoreApplication.translate("Knob", u"LO", None))
+		self.spLO.setupUi(ctlname, QCoreApplication.translate("Knob", u"LO", None))
 		self.verticalLayout.addWidget(self.spLO)
+		subcontrols[ctlname] = self.spLO.spin
 
+		ctlname = 'k' + self.kTitle + '_hi'
 		self.spHI = Spinput()
-		self.spHI.setupUi("k" + self.kTitle + "_hi", QCoreApplication.translate("Knob", u"HI", None))
+		self.spHI.setupUi(ctlname, QCoreApplication.translate("Knob", u"HI", None))
 		self.verticalLayout.addWidget(self.spHI)
+		subcontrols[ctlname] = self.spHI.spin
 
 		if self.mc < 16:
-			self.cbMC = self.createObj("k" + self.kTitle + "_mc", QComboBox(self.knobLW))
+			ctlname = 'k' + self.kTitle + '_mc'
+			self.cbMC = self.createObj(ctlname, QComboBox(self.knobLW))
 			for ch in range(1,17):
 				sp = "  " if ch < 10 else ""
 				self.cbMC.addItem(sp + str(ch))
@@ -68,6 +76,7 @@ class Knob(QWidget, Creator):
 			self.mc = 16
 			self.cbMC.currentIndexChanged.connect(lambda i: print(str(i)))
 			self.verticalLayout.addWidget(self.cbMC)
+			subcontrols[ctlname] = self.cbMC
 
 		self.setFixedSize(self.knobLW.sizeHint())
 
@@ -76,6 +85,8 @@ class Knob(QWidget, Creator):
 		self.cbName.currentIndexChanged.connect(self.ccChanged)
 		self.pot.valueChanged.connect(lambda v: self.sendControlChanged.emit(self.mc, self.spCC.value(), v))
 		QMetaObject.connectSlotsByName(self)
+		
+		return subcontrols
 
 	def retranslateUi(self, Knob):
 		self.cbName.lineEdit().setText(QCoreApplication.translate("Knob", u"K " + self.kTitle, None))
@@ -87,7 +98,7 @@ class Knob(QWidget, Creator):
 	def ccChanged(self, index):
 		if index > 0:
 			ccn = self.cbName.itemText(index)
-			cc = [cc for cc, i in self.controls.items() if i == ccn][0]
+			cc = [cc for cc, i in self.midi_controls.items() if i == ccn][0]
 			self.spCC.spin.setValue(cc)
 
 # Custon QDial subclass by geomaticien
