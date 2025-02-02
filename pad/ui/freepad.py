@@ -2,7 +2,7 @@ import os, json
 
 from qtpy.QtCore import QCoreApplication, QDir, QMetaObject, Qt, QTimer
 from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGridLayout, \
-	QHBoxLayout, QLabel, QLayout, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QStatusBar, QSpinBox, \
+	QHBoxLayout, QLabel, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QStatusBar, QSpinBox, \
 	QStyle, QVBoxLayout, QWidget
 from qtpy.QtGui import QIcon, QKeyEvent
 
@@ -107,7 +107,6 @@ class FreepadWindow(QWidget, Creator):
 		self.pmc = 16
 		self.kmc = 16
 		self.setupUi()
-		self.setFixedSize(self.sizeHint())
 		if self.io.isConnected:
 			self.getProgram("1")
 		else:
@@ -122,17 +121,19 @@ class FreepadWindow(QWidget, Creator):
 		if 'nb_programs' in self.device:
 			self.nbPrograms = int(self.device['nb_programs'])
 
-		# Main layout
+		# Main layout: hLayout + statusbar
 		self.createObj(u"vLayout", QVBoxLayout(self))
 		self.vLayout.setContentsMargins(0, 0, 0, 0)
+		self.vLayout.setSpacing(0)
 
 		self.createObj(u"hLayout", QHBoxLayout())
-		self.hLayout.setContentsMargins(10, 10, 0, 0) # this 10 is top-margin
-		self.hLayout.setSizeConstraint(QLayout.SetMinAndMaxSize)
+		self.hLayout.setContentsMargins(10, 10, 10, 10)
+		self.hLayout.setSpacing(10)
 
 		if self.nbPrograms > 0:
 			self.createObj(u"vLayoutg", QVBoxLayout())
 			self.vLayoutg.setContentsMargins(0, 0, 0, 0)
+			self.vLayoutg.setSpacing(10)
 			for pg in range(1, int(self.device["nb_programs"] + 1)):
 				pgt = str(pg)
 				pglayout = Creator.createObj(self.vLayoutg, "pgl" + pgt, QHBoxLayout())
@@ -142,34 +143,30 @@ class FreepadWindow(QWidget, Creator):
 				pgui.setEnabled(self.io.isConnected)
 				pglayout.addWidget(pgui, alignment = Qt.AlignmentFlag.AlignCenter)
 				self.vLayoutg.addLayout(pglayout)
-				self.vSpacer = QSpacerItem(5, 5, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-				self.vLayoutg.addItem(self.vSpacer)
 
 			self.createObj(u"hlToRam", QHBoxLayout())
 			self.createObj(u"btnToRam", QPushButton())
 			self.btnToRam.setStyleSheet("QPushButton{padding: 5px 20px 5px 20px;}")
 			self.btnToRam.setEnabled(self.io.isConnected)
-			hlspacerg = QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-			hlspacerd = QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+			hlspacerg = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+			hlspacerd = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 			self.hlToRam.addItem(hlspacerg)
 			self.hlToRam.addWidget(self.btnToRam)
 			self.hlToRam.addItem(hlspacerd)
 			self.vLayoutg.addLayout(self.hlToRam)
 			self.btnToRam.clicked.connect(self.sendToRam)
 
-			self.verticalSpacer = QSpacerItem(5, 5, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-			self.vLayoutg.addItem(self.verticalSpacer)
 			self.addAppButtons(self.vLayoutg)
-			self.verticalSpacer2 = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-			self.vLayoutg.addItem(self.verticalSpacer2)
 			self.hLayout.addLayout(self.vLayoutg)
 
-		self.createObj(u"gLayoutd", QGridLayout())
-		self.gLayoutd.setHorizontalSpacing(10)
-		self.gLayoutd.setVerticalSpacing(0)
+		self.createObj(u"vLayoutd", QVBoxLayout())
+		self.vLayoutd.setContentsMargins(0, 0, 0, 0)
+		self.createObj(u"gLayout", QGridLayout())
+		self.vLayoutd.addLayout(self.gLayout)
+		self.gLayout.setContentsMargins(0, 0, 0, 0)
+		self.gLayout.setSpacing(10)
 		l = 0
 		for line in self.device['layout']:
-			l = l + 1
 			c = 0
 			for ctl in line:
 				ctlType = ctl.rstrip("0123456789")
@@ -193,17 +190,16 @@ class FreepadWindow(QWidget, Creator):
 									'mc': self.kmc}
 				control = self.createObj(ctl, ctlClass)
 				control.setupUi(params)
-				self.gLayoutd.addWidget(control, l, c, alignment = Qt.AlignmentFlag.AlignCenter)
+				self.gLayout.addWidget(control, l, c, alignment = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
 				c = c + 1
 			l = l + 1
+
 
 		self.createObj(u"hLayoutMC", QHBoxLayout())
 		self.hLayoutMC.setContentsMargins(0, 0, 0, 0)
 		self.hLayoutMC.setSpacing(10)
-
 		self.createObj(u"labelMC", QLabel())
 		self.hLayoutMC.addWidget(self.labelMC)
-
 		self.createObj(u"mc", QComboBox())
 		self.mc.setMinimumWidth(60)
 		for ch in range(1,17):
@@ -218,17 +214,16 @@ class FreepadWindow(QWidget, Creator):
 		if self.nbPrograms == 0:
 			self.addAppButtons(self.hLayoutMC)
 
-		self.gLayoutd.addLayout(self.hLayoutMC, l + 1, 0, 1, c)
-		self.hLayout.addLayout(self.gLayoutd)
+		self.vLayoutd.addLayout(self.hLayoutMC)
+		self.hLayout.addLayout(self.vLayoutd)
 		self.vLayout.addLayout(self.hLayout)
-		# Margin bottom before status bar
-		self.vLayout.addItem(QSpacerItem(10, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
-
+		# status bar
 		if self.showMidiMessages:
 			self.createObj(u"statusbar", QStatusBar())
 			self.vLayout.addWidget(self.statusbar)
 
 		self.retranslateUi()
+		self.setFixedSize(self.sizeHint())
 
 		self.mc.currentIndexChanged.connect(self.valueChanged)
 

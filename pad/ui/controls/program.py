@@ -9,11 +9,10 @@ class Program(QWidget , Creator):
 		self.n = n
 
 	def setupUi(self):
-		self.setMinimumSize(QSize(138, 65))
-
 		self.createObj("vLayout", QVBoxLayout(self))
 		self.vLayout.setContentsMargins(0, 0, 0, 0)
-		
+		self.vLayout.setSpacing(0)
+
 		self.lblhLayout = QHBoxLayout()
 		self.lblhLayout.setContentsMargins(0, 0, 0, 0)
 
@@ -37,21 +36,15 @@ class Program(QWidget , Creator):
 
 		self.createObj("hLayout", QHBoxLayout())
 		self.hLayout.setContentsMargins(0, 0, 0, 0)
-
-		self.hSpacerl = QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-		self.hLayout.addItem(self.hSpacerl)
+		self.hLayout.setSpacing(10)
 
 		self.btnGet = QPushButton()
 		self.hLayout.addWidget(self.btnGet)
-
 		self.btnSend = QPushButton()
 		self.hLayout.addWidget(self.btnSend)
 
-		self.hSpacerd = QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-		self.hLayout.addItem(self.hSpacerd)
-
 		self.vLayout.addLayout(self.hLayout)
-		self.vSpacer = QSpacerItem(5, 5, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+		self.vSpacer = QSpacerItem(0, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 		self.vLayout.addItem(self.vSpacer)
 
 		self.retranslateUi()

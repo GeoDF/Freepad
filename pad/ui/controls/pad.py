@@ -96,7 +96,7 @@ class Pad(QWidget, Creator):
 			self.btnNoteHL.addWidget(btnOn, Qt.AlignmentFlag.AlignRight)
 		self.verticalLayout.addLayout(self.btnNoteHL)
 
-		self.createObj('hl', QHBoxLayout())
+		self.createObj('hlp', QHBoxLayout())
 		self.createObj('vl2', QVBoxLayout())
 
 		self.spNote = Spinput()
@@ -129,23 +129,21 @@ class Pad(QWidget, Creator):
 			self.cbMC.currentIndexChanged.connect(self.mcChanged)
 			self.vl2.addWidget(self.cbMC)
 
-		self.hl.addLayout(self.vl2)
+		self.hlp.addLayout(self.vl2)
 
 		# Level
 		self.createObj('vlLevel', QVBoxLayout())
 		self.createObj('level', Level(self))
 		self.vlLevel.addWidget(self.level, 0, Qt.AlignmentFlag.AlignHCenter)
-		self.vlLevel.addItem(QSpacerItem(15, 4, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum))
+		self.vlLevel.addItem(QSpacerItem(0, 4, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum))
 		# Key
 		self.createObj('leKey', keyEdit())
 		self.leKey.textChanged.connect(lambda: self.keyChanged.emit(self.pad_id, self.leKey.text()))
 		self.vlLevel.addWidget(self.leKey)
-		self.vlLevel.addItem(QSpacerItem(15, 2, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum))
+		self.vlLevel.addItem(QSpacerItem(0, 2, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum))
 
-		self.hl.addLayout(self.vlLevel)
-		self.verticalLayout.addLayout(self.hl)
-
-		self.verticalLayout.addLayout(self.hl)
+		self.hlp.addLayout(self.vlLevel)
+		self.verticalLayout.addLayout(self.hlp)
 
 		self.setFixedSize(self.padLW.sizeHint())
 
