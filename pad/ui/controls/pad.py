@@ -3,7 +3,7 @@ from qtpy.QtWidgets import QColorDialog, QComboBox, QFrame, QGraphicsDropShadowE
 		QLineEdit, QPushButton, QSlider, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 from qtpy.QtGui import QColor
 
-from pad.ui.common import Creator, Spinput
+from pad.ui.common import Creator, Spinput, FREEPAD_LGRADIENT, FREEPAD_RGRADIENT
 
 class Pad(QWidget, Creator):
 	sendNoteOn = Signal(int, int, int)
@@ -45,23 +45,18 @@ class Pad(QWidget, Creator):
 	"min-width: 150px;"
 	"border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;"
 "}"
-'QSlider::vertical {'
-	'width: 22px;'
-'}'
-'QSlider::groove:vertical {'
-	'width: 5px; border: 1px solid #111111;'
-	'background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(128, 85, 0, 255), stop:1 rgba(170, 0, 0, 255));'
-'}'
-'QSlider::sub-page:vertical {'
-	'width: 5px; border: 1px solid #000000; background: ' + self.lgradient + ';}'
-'QSlider::handle:vertical:focus {width: 22px; margin-left: -4px; margin-right: -6px; height: 5px; border: 1px outset #882200; border-radius: 3px; background: #441100;}'
-'QSlider::handle:vertical:hover {background: #882200;}'
-'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + self.rgradient + '; selection-color: #ff3800; selection-background-color: #001828;}'
+'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + FREEPAD_RGRADIENT + '; selection-color: #ff3800; selection-background-color: #001828;}'
 'QLineEdit:focus, QLineEdit:hover {border: 1px inset #441200;}'
 )
 
-		self.createObj(u"padLW", QFrame(self))
+		# Pad main layout
+		self.createObj('padMainLayout', QVBoxLayout(self))
+		self.padMainLayout.setContentsMargins(0, 0, 0, 0)
+		self.padMainLayout.setSpacing(0)
+		# Pad frame
+		self.createObj(u"padLW", QFrame())
 		self.padLW.setFrameStyle(QFrame.StyledPanel)
+		self.padMainLayout.addWidget(self.padLW)
 
 		self.createObj(u"verticalLayout", QVBoxLayout())
 		self.padLW.setLayout(self.verticalLayout)
@@ -145,9 +140,8 @@ class Pad(QWidget, Creator):
 		self.hlp.addLayout(self.vlLevel)
 		self.verticalLayout.addLayout(self.hlp)
 
-		self.setFixedSize(self.padLW.sizeHint())
-
 		self.retranslateUi()
+		self.setFixedSize(self.padMainLayout.sizeHint())
 
 		self.cbName.currentIndexChanged.connect(self.instrumentChanged)
 		self.spNote.valueChanged.connect(self.noteChanged)
@@ -230,6 +224,20 @@ class Level(QSlider):
 		self.setMinimum(0)
 		self.setMaximum(127)
 		self.setOrientation(Qt.Orientation.Vertical)
+		self.setStyleSheet(
+'QSlider::vertical {'
+	'width: 22px;'
+'}'
+'QSlider::groove:vertical {'
+	'width: 5px; border: 1px solid #111111;'
+	'background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(128, 85, 0, 255), stop:1 rgba(170, 0, 0, 255));'
+'}'
+'QSlider::sub-page:vertical {'
+	'width: 5px; border: 1px solid #000000; background: ' + FREEPAD_LGRADIENT + ';}'
+'QSlider::handle:vertical:focus {'
+	'width: 22px; margin-left: -4px; margin-right: -6px; height: 5px;'
+	'border: 1px outset #882200; border-radius: 3px; background: #441100;}'
+'QSlider::handle:vertical:hover {background: #882200;}')
 		self.defaultVelocity = 80 # velocity when sending midi notes
 		self._settingVelocity = False
 		self.valueChanged.connect(self.setDefaultVelocity)

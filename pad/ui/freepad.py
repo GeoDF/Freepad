@@ -7,7 +7,7 @@ from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGri
 from qtpy.QtGui import QIcon, QKeyEvent
 
 from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH
-from pad.ui.common import Creator, PadException
+from pad.ui.common import Creator, PadException, FREEPAD_LGRADIENT, FREEPAD_RGRADIENT, FREEPAD_RGRADIENT_OVER
 from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
 from pad.padio import PadIO
@@ -37,15 +37,12 @@ class FreepadWindow(QWidget, Creator):
 
 		self.titleColor = "#dfdddd"
 		self.noteColor = "#cfffff"
-		self.lgradient = "qlineargradient(spread:reflect, x1:1, y1:0.5, x2:1, y2:1, stop:0 #171719, stop:1 #080808);"
-		self.rgradient = "qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #080808, stop:1 #171719)"
-		self.rgradient_over = "qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #280808, stop:1 #171719)"
 
 		self.setStyleSheet("FreepadWindow * {"
 "color: white;"
 "}"
 "FreepadWindow, QStatusBar, Pad #padLW {"
-"background: " + self.lgradient + ";"
+"background: " + FREEPAD_LGRADIENT + ";"
 "}"
 "#cbName, Program #bTitle, QStatusBar {"
 "font-size: 12px; color: " + self.titleColor + ";"
@@ -78,16 +75,16 @@ class FreepadWindow(QWidget, Creator):
 "selection-background-color: #8f2200; selection-color: #000022;"
 "}"
 "QPushButton, QComboBox, QComboBox QListView {"
-"background: " + self.rgradient + ";"
+"background: " + FREEPAD_RGRADIENT + ";"
 "}"
 "QPushButton:hover {"
-"background: " + self.rgradient_over + "; color: #8fffdf;"
+"background: " + FREEPAD_RGRADIENT_OVER + "; color: #8fffdf;"
 "}"
 "QPushButton {"
 "border: 2px outset #171719; padding: 5px; padding-left: 15px; padding-right: 15px;"
 "}"
 "QPushButton::pressed {"
-"border: 2px inset #171719; background: " + self.lgradient + ";"
+"border: 2px inset #171719; background: " + FREEPAD_LGRADIENT + ";"
 "}"
 "QPushButton::disabled {"
 "color: #666666;"
@@ -176,9 +173,7 @@ class FreepadWindow(QWidget, Creator):
 					params = {'kit': self.defaultKit, \
 									'bv': 'bv' in self.device['pad'], \
 									'rgb': 'on_red' in self.device['pad'],
-									'mc': self.pmc,
-									'lgradient': self.rgradient,
-									'rgradient': self.rgradient
+									'mc': self.pmc
 									}
 					ctlClass.sendNoteOn.connect(self._sendNoteOn)
 					ctlClass.sendNoteOff.connect(self._sendNoteOff)
@@ -190,6 +185,11 @@ class FreepadWindow(QWidget, Creator):
 									'mc': self.kmc}
 				control = self.createObj(ctl, ctlClass)
 				control.setupUi(params)
+				#control=QLabel()
+				#control.setStyleSheet('background:green;')
+				#control.setMinimumSize(100, 150)
+				
+				
 				self.gLayout.addWidget(control, l, c, alignment = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
 				c = c + 1
 			l = l + 1

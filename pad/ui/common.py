@@ -1,6 +1,10 @@
 from qtpy.QtCore import QMetaObject, Signal
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QSpinBox, QWidget
 
+FREEPAD_LGRADIENT = 'qlineargradient(spread:reflect, x1:1, y1:0.5, x2:1, y2:1, stop:0 #171719, stop:1 #080808);'
+FREEPAD_RGRADIENT = 'qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #080808, stop:1 #171719)'
+FREEPAD_RGRADIENT_OVER = 'qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #280808, stop:1 #171719)'
+
 class PadException(Exception):
 	def __init__(self, err):
 		super().__init__(err)
@@ -49,7 +53,6 @@ class Spinput(QWidget, Creator):
 		self.spin.setMaximum(127)
 		self.spin.setAccelerated(True)
 		self.hl.addWidget(self.spin)
-		#self.setFixedSize(self.hl.sizeHint())
 
 		self.spin.valueChanged.connect(lambda v: self.valueChanged.emit(v))
 		QMetaObject.connectSlotsByName(self)
