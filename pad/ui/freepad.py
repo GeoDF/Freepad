@@ -6,7 +6,7 @@ from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGri
 	QStyle, QVBoxLayout, QWidget
 from qtpy.QtGui import QIcon, QKeyEvent
 
-from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH
+from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH, imgUrl
 from pad.ui.common import Creator, PadException, FREEPAD_LGRADIENT, FREEPAD_RGRADIENT, FREEPAD_RGRADIENT_OVER
 from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
@@ -27,73 +27,73 @@ class FreepadWindow(QWidget, Creator):
 		except:
 			pass
 		self.io.receivedMidi.connect(self.receivedMidi)
-		self.midiname = self.device["midiname"]
+		self.midiname = self.device['midiname']
 		if 'nb_programs' in self.device:
-			self.nbPrograms = int(self.device["nb_programs"])
+			self.nbPrograms = int(self.device['nb_programs'])
 		else:
 			self.nbPrograms = 0
 
 		self._program = self.io.program
 
-		self.titleColor = "#dfdddd"
-		self.noteColor = "#cfffff"
+		self.titleColor = '#dfdddd'
+		self.noteColor = '#cfffff'
 
-		self.setStyleSheet("FreepadWindow * {"
-"color: white;"
-"}"
-"FreepadWindow, QStatusBar, Pad #padLW {"
-"background: " + FREEPAD_LGRADIENT + ";"
-"}"
-"#cbName, Program #bTitle, QStatusBar {"
-"font-size: 12px; color: " + self.titleColor + ";"
-"}"
-"QComboBox:focus, QComboBox:hover {"
-"border: 1px inset #441200; selection-color: #000022; selection-background-color: #8f2200"
-"}"
-"QComboBox {"
-"border: 1px outset #111111; border-radius: 3px; background: transparent;"
-"}"
-"QComboBox QListView {"
-"border: 1px solid #8f2200; border-radius: 3px; border-top-left-radius: 0;"
-"}"
-"QComboBox::drop-down {"
-"width: 12px; height: 12px;"
-"subcontrol-origin: border;"
-"subcontrol-position: center right;"
-"}"
-"QComboBox::down-arrow {"
-"background: none; border: none;"
-"image: url(pad/ui/img/spindown.png);"
-"}"
-"QComboBox::down-arrow:hover {"
-"image: url(pad/ui/img/spindown_hover.png);"
-"}"
-"Pad #btnNote, QStatusBar {"
-"font-size: 12px; color: " + self.noteColor + ";"
-"}"
-"QComboBox QAbstractItemView {"
-"selection-background-color: #8f2200; selection-color: #000022;"
-"}"
-"QPushButton, QComboBox, QComboBox QListView {"
-"background: " + FREEPAD_RGRADIENT + ";"
-"}"
-"QPushButton:hover {"
-"background: " + FREEPAD_RGRADIENT_OVER + "; color: #8fffdf;"
-"}"
-"QPushButton {"
-"border: 2px outset #171719; padding: 5px; padding-left: 15px; padding-right: 15px;"
-"}"
-"QPushButton::pressed {"
-"border: 2px inset #171719; background: " + FREEPAD_LGRADIENT + ";"
-"}"
-"QPushButton::disabled {"
-"color: #666666;"
-"}"
+		self.setStyleSheet('FreepadWindow * {'
+'color: white;'
+'}'
+'FreepadWindow, QStatusBar, Pad #padLW {'
+'background: ' + FREEPAD_LGRADIENT + ';'
+'}'
+'#cbName, Program #bTitle, QStatusBar {'
+'font-size: 12px; color: ' + self.titleColor + ';'
+'}'
+'QComboBox:focus, QComboBox:hover {'
+'border: 1px inset #441200; selection-color: #000022; selection-background-color: #8f2200;'
+'}'
+'QComboBox {'
+'border: 1px outset #111111; border-radius: 3px; background: transparent;'
+'}'
+'QComboBox QListView {'
+'border: 1px solid #8f2200; border-radius: 3px; border-top-left-radius: 0;'
+'}'
+'QComboBox::drop-down {'
+'width: 12px; height: 12px;'
+'subcontrol-origin: border;'
+'subcontrol-position: center right;'
+'}'
+'QComboBox::down-arrow {'
+'background: none; border: none;'
+'image: url("' + imgUrl('spindown.png') +'");'
+'}'
+'QComboBox::down-arrow:hover {'
+'image: url("' + imgUrl('spindown_hover.png') +'");'
+'}'
+'Pad #btnNote, QStatusBar {'
+'font-size: 12px; color: ' + self.noteColor + ';'
+'}'
+'QComboBox QAbstractItemView {'
+'selection-background-color: #8f2200; selection-color: #000022;'
+'}'
+'QPushButton, QComboBox, QComboBox QListView {'
+'background: ' + FREEPAD_RGRADIENT + ';'
+'}'
+'QPushButton:hover {'
+'background: ' + FREEPAD_RGRADIENT_OVER + '; color: #8fffdf;'
+'}'
+'QPushButton {'
+'border: 2px outset #171719; padding: 5px; padding-left: 15px; padding-right: 15px;'
+'}'
+'QPushButton::pressed {'
+'border: 2px inset #171719; background: ' + FREEPAD_LGRADIENT + ';'
+'}'
+'QPushButton::disabled {'
+'color: #666666;'
+'}'
 )
 		self.in_symbol = '\u25B6'
 		self.out_symbol = '\u25C0'
 
-		self.showMidiMessages = True if str(self.settings.value('showMidiMessages', "True")) == "True"  else False
+		self.showMidiMessages = True if str(self.settings.value('showMidiMessages', 'True')) == 'True'  else False
 		self.settingProgram = False
 		self.padNotes = []
 		self.padProgramChanges = []
@@ -106,7 +106,7 @@ class FreepadWindow(QWidget, Creator):
 		self.kmc = 16 # default knob midi channel
 		self.setupUi()
 		if self.io.isConnected:
-			self.getProgram("1")
+			self.getProgram('1')
 		else:
 			self.load1stPreset()
 
@@ -120,22 +120,22 @@ class FreepadWindow(QWidget, Creator):
 			self.nbPrograms = int(self.device['nb_programs'])
 
 		# Main layout: hLayout + statusbar
-		self.createObj(u"vLayout", QVBoxLayout(self))
+		self.createObj(u'vLayout', QVBoxLayout(self))
 		self.vLayout.setContentsMargins(0, 0, 0, 0)
 		self.vLayout.setSpacing(0)
 
-		self.createObj(u"hLayout", QHBoxLayout())
+		self.createObj(u'hLayout', QHBoxLayout())
 		self.hLayout.setContentsMargins(10, 10, 10, 10)
 		self.hLayout.setSpacing(10)
 
 		if self.nbPrograms > 0:
-			self.createObj(u"vLayoutg", QVBoxLayout())
+			self.createObj(u'vLayoutg', QVBoxLayout())
 			self.vLayoutg.setContentsMargins(0, 0, 0, 0)
 			self.vLayoutg.setSpacing(10)
-			for pg in range(1, int(self.device["nb_programs"] + 1)):
+			for pg in range(1, int(self.device['nb_programs'] + 1)):
 				pgt = str(pg)
-				pglayout = Creator.createObj(self.vLayoutg, "pgl" + pgt, QHBoxLayout())
-				self.programs.append(Creator.createObj(self.vLayoutg, "pid" + pgt, Program(pgt)))
+				pglayout = Creator.createObj(self.vLayoutg, 'pgl' + pgt, QHBoxLayout())
+				self.programs.append(Creator.createObj(self.vLayoutg, 'pid' + pgt, Program(pgt)))
 				pgui = self.programs[pg - 1]
 				pgui.setupUi()
 				pgui.setEnabled(self.io.isConnected)
@@ -143,9 +143,9 @@ class FreepadWindow(QWidget, Creator):
 				self.vLayoutg.addLayout(pglayout)
 				self._controls['pid' + str(pg)] = pgui
 
-			self.createObj(u"hlToRam", QHBoxLayout())
-			self.createObj(u"btnToRam", QPushButton())
-			self.btnToRam.setStyleSheet("QPushButton{padding: 5px 20px 5px 20px;}")
+			self.createObj(u'hlToRam', QHBoxLayout())
+			self.createObj(u'btnToRam', QPushButton())
+			self.btnToRam.setStyleSheet('QPushButton{padding: 5px 20px 5px 20px;}')
 			self.btnToRam.setEnabled(self.io.isConnected)
 			hlspacerg = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 			hlspacerd = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
@@ -158,9 +158,9 @@ class FreepadWindow(QWidget, Creator):
 			self.addAppButtons(self.vLayoutg)
 			self.hLayout.addLayout(self.vLayoutg)
 
-		self.createObj(u"vLayoutd", QVBoxLayout())
+		self.createObj(u'vLayoutd', QVBoxLayout())
 		self.vLayoutd.setContentsMargins(0, 0, 0, 0)
-		self.createObj(u"gLayout", QGridLayout())
+		self.createObj(u'gLayout', QGridLayout())
 		self.vLayoutd.addLayout(self.gLayout)
 		self.gLayout.setContentsMargins(0, 0, 0, 0)
 		self.gLayout.setSpacing(10)
@@ -169,7 +169,7 @@ class FreepadWindow(QWidget, Creator):
 			c = 0
 			for ctl in line:
 				if ctl != '':
-					ctlType = ctl.rstrip("0123456789")
+					ctlType = ctl.rstrip('0123456789')
 					ctlNum = ctl[len(ctlType):]
 					if ctlType == 'p':
 						ctlClass = Pad(ctlNum, self.settings)
@@ -194,22 +194,22 @@ class FreepadWindow(QWidget, Creator):
 				c = c + 1
 			l = l + 1
 
-		self.createObj(u"hLayoutMC", QHBoxLayout())
+		self.createObj(u'hLayoutMC', QHBoxLayout())
 		self.hLayoutMC.setContentsMargins(0, 0, 0, 0)
 		self.hLayoutMC.setSpacing(10)
-		self.createObj(u"labelMC", QLabel())
+		self.createObj(u'labelMC', QLabel())
 		self.hLayoutMC.addWidget(self.labelMC)
-		self.createObj(u"mc", QComboBox())
+		self.createObj(u'mc', QComboBox())
 		self.mc.setMinimumWidth(60)
 		for ch in range(1,17):
-			sp = "  " if ch < 10 else ""
+			sp = '  ' if ch < 10 else ''
 			self.mc.addItem(sp + str(ch))
 		self.hLayoutMC.addWidget(self.mc)
 		self._controls['mc'] = self.mc
 
 		self.lblAlert = QLabel()
 		self.lblAlert.setAlignment(Qt.AlignmentFlag.AlignCenter)
-		self.lblAlert.setStyleSheet("color: #ff2800;")
+		self.lblAlert.setStyleSheet('color: #ff2800;')
 		self.hLayoutMC.addWidget(self.lblAlert)
 		self.hLayoutMC.setStretch(2,1)
 		if self.nbPrograms == 0:
@@ -220,7 +220,7 @@ class FreepadWindow(QWidget, Creator):
 		self.vLayout.addLayout(self.hLayout)
 		# status bar
 		if self.showMidiMessages:
-			self.createObj(u"statusbar", QStatusBar())
+			self.createObj(u'statusbar', QStatusBar())
 			self.vLayout.addWidget(self.statusbar)
 
 		self.retranslateUi()
@@ -231,15 +231,15 @@ class FreepadWindow(QWidget, Creator):
 		QMetaObject.connectSlotsByName(self)
 
 	def addAppButtons(self, layout):
-		self.createObj(u"tbLayout", QHBoxLayout())
-		self.createObj(u"btnLoad", QPushButton())
+		self.createObj(u'tbLayout', QHBoxLayout())
+		self.createObj(u'btnLoad', QPushButton())
 		self.btnLoad.setEnabled(False)
-		self.btnLoad.setIcon(self.style().standardIcon(getattr(QStyle.StandardPixmap, "SP_DialogOpenButton")))
-		self.createObj(u"btnSave", QPushButton())
+		self.btnLoad.setIcon(self.style().standardIcon(getattr(QStyle.StandardPixmap, 'SP_DialogOpenButton')))
+		self.createObj(u'btnSave', QPushButton())
 		self.btnSave.setEnabled(False)
-		self.btnSave.setIcon(self.style().standardIcon(getattr(QStyle.StandardPixmap, "SP_DialogSaveButton")))
-		self.createObj(u"btnOptions", QPushButton())
-		self.btnOptions.setIcon(self.style().standardIcon(getattr(QStyle.StandardPixmap, "SP_MessageBoxInformation")))
+		self.btnSave.setIcon(self.style().standardIcon(getattr(QStyle.StandardPixmap, 'SP_DialogSaveButton')))
+		self.createObj(u'btnOptions', QPushButton())
+		self.btnOptions.setIcon(self.style().standardIcon(getattr(QStyle.StandardPixmap, 'SP_MessageBoxInformation')))
 		tblspacerg = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 		tblspacerd = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 		self.tbLayout.addItem(tblspacerg)
@@ -280,10 +280,10 @@ class FreepadWindow(QWidget, Creator):
 				self._loadProgram(pp)
 
 	def loadProgram(self, event):
-		filename = ""
+		filename = ''
 		try:
 			filename = self._fileDialog(QFileDialog.ExistingFile, QFileDialog.AcceptOpen)
-			if filename != "":
+			if filename != '':
 				QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 				self._loadProgram(filename)
 				QApplication.restoreOverrideCursor()
@@ -292,7 +292,7 @@ class FreepadWindow(QWidget, Creator):
 			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
 
 	def _loadProgram(self, filename):
-		with open(filename, "r") as fp:
+		with open(filename, 'r') as fp:
 			lst = json.load(fp)
 			fp.close()
 			pgm = [0] + lst[0]
@@ -321,8 +321,8 @@ class FreepadWindow(QWidget, Creator):
 	def saveProgram(self, event):
 		#try:
 			filename = self._fileDialog(QFileDialog.AnyFile, QFileDialog.AcceptSave)
-			if filename != "":
-				with open(filename, "w") as fp:
+			if filename != '':
+				with open(filename, 'w') as fp:
 					pgm = self.program()
 					json.dump([pgm[1:], self._ctlVars()], fp)
 					fp.close()
@@ -343,20 +343,20 @@ class FreepadWindow(QWidget, Creator):
 
 	# slot called when receiving a midi message
 	def receivedMidi(self, msg):
-		m = msg.split(" ")
+		m = msg.split(' ')
 		mtype = m[0]
-		if mtype == "note_on":
+		if mtype == 'note_on':
 			self._midiNoteOn(m[1][8:], m[2][5:], m[3])
-		elif mtype == "note_off":
+		elif mtype == 'note_off':
 			self._midiNoteOff(m[1][8:], m[2][5:], m[3])
-		elif mtype == "control_change":
+		elif mtype == 'control_change':
 			self._midiControlChange(m[1][8:], m[2][8:], m[3][6:])
-		elif mtype == "program_change":
+		elif mtype == 'program_change':
 			self._midiProgramChange(m[1][8:], m[2][8:])
-		elif mtype == "sysex":
+		elif mtype == 'sysex':
 			self._midiSysex(m[1])
 		else:
-			self.warning("Received midi message of unknown type " + mtype)
+			self.warning('Received midi message of unknown type ' + mtype)
 		if self.showMidiMessages:
 			self.statusbar.showMessage(self.in_symbol + ' ' + msg[0:-7]) # without "time=0"
 
@@ -375,13 +375,13 @@ class FreepadWindow(QWidget, Creator):
 		if len(self.padNotes) == 0:
 			for i in range(0, len(self._program)):
 				ctlname = self._program[i]
-				if (ctlname[0:1] == "p") and (ctlname[-5:] == "_note"):
+				if (ctlname[0:1] == 'p') and (ctlname[-5:] == '_note'):
 					val = self.getValue(ctlname)
 					self.padNotes.append(str(val))
 		if note in self.padNotes:
 			index = self.padNotes.index(note) + 1
 			if note in self.padNotes[index:]:
-				self.warning("Cannot retrieve pad when a note is set twice or more", ': ' + str(self.padNotes))
+				self.warning('Cannot retrieve pad when a note is set twice or more', ': ' + str(self.padNotes))
 			return index
 		else:
 			return 0
@@ -392,14 +392,14 @@ class FreepadWindow(QWidget, Creator):
 				try:
 					ctlname = self._program[i]
 				except:
-					raise PadException(ctlname + " not found in program.")
-				if (ctlname[0:1] == "p") and (ctlname[-3:] == "_pc"):
+					raise PadException(ctlname + ' not found in program.')
+				if (ctlname[0:1] == 'p') and (ctlname[-3:] == '_pc'):
 					val = self.getValue(ctlname)
 					self.padProgramChanges.append(str(val))
 		if pc in self.padProgramChanges:
 			index = self.padProgramChanges.index(pc) + 1
 			if pc in self.padProgramChanges[index:]:
-				self.warning("Cannot retrieve pad when a program change is set twice or more", ': ' + str(self.padNotes))
+				self.warning('Cannot retrieve pad when a program change is set twice or more', ': ' + str(self.padNotes))
 			return index
 		else:
 			return 0
@@ -410,61 +410,61 @@ class FreepadWindow(QWidget, Creator):
 				try:
 					ctlname = self._program[i]
 				except:
-					raise PadException(ctlname + " not found in program.")
-				if (ctlname[0:1] == "k") and (ctlname[-3:] == "_cc"):
+					raise PadException(ctlname + ' not found in program.')
+				if (ctlname[0:1] == 'k') and (ctlname[-3:] == '_cc'):
 					val = self.getValue(ctlname)
 					self.padControlChanges.append(str(val))
 		if cc in self.padControlChanges:
 			index = self.padControlChanges.index(cc) + 1
 			if cc in self.padControlChanges[index:]:
-				self.warning("Cannot retrieve knob when a control change is set twice or more", ': ' + str(self.padControlChanges))
+				self.warning('Cannot retrieve knob when a control change is set twice or more', ': ' + str(self.padControlChanges))
 			return index
 		return 0
 
 	def _midiNoteOn(self, channel, note, velocity):
 		padnum = self._padFromNote(note)
 		if padnum > 0:
-			pad = self.findChildren(QWidget, "p" + str(padnum))
+			pad = self.findChildren(QWidget, 'p' + str(padnum))
 			if len(pad) > 0:
 				pad[0].lightOn(velocity[9:])
 		else:
-			self.warning("Cannot retrieve pad from note " + str(note), " in " + str(self.padNotes))
+			self.warning('Cannot retrieve pad from note ' + str(note), ' in ' + str(self.padNotes))
 
 	def _midiNoteOff(self, channel, note, velocity):
 		padnum = self._padFromNote(note)
 		if padnum > 0:
-			pad = self.findChildren(QWidget, "p" + str(padnum))
+			pad = self.findChildren(QWidget, 'p' + str(padnum))
 			if len(pad) > 0:
 				pad[0].lightOff()
 
 	def _midiControlChange(self, channel, control, value):
 		knum = self._kFromControlChange(control)
 		if knum > 0:
-			k = self.findChildren(QWidget, "k" + str(knum))
+			k = self.findChildren(QWidget, 'k' + str(knum))
 			if len(k) > 0:
 				k[0].setValue(value)
 		else:
-			self.warning("Cannot retrieve knob with control changes " + str(self.padControlChanges), " for CC " + str(control))
+			self.warning('Cannot retrieve knob with control changes ' + str(self.padControlChanges), ' for CC ' + str(control))
 
 	def _midiProgramChange(self, channel, program):
 		padnum = self._padFromProgramChange(program)
 		if padnum > 0:
-			pad = self.findChildren(QWidget, "p" + str(padnum))
+			pad = self.findChildren(QWidget, 'p' + str(padnum))
 			if len(pad) > 0:
 				pad[0].lightOn()
 				QTimer.singleShot(200, lambda: pad[0].lightOff())
 		else:
-			self.warning("Cannot retrieve pad from program change with program" + str(self.padProgramChanges))
+			self.warning('Cannot retrieve pad from program change with program' + str(self.padProgramChanges))
 
 	def _midiSysex(self, data):
-		data = data[6: -1].split(",")
+		data = data[6: -1].split(',')
 		self.cprint('Received ' + str(data))
-		self.setProgram(data[len(self.io.pad["get_program"].split(",")) - 1:])
+		self.setProgram(data[len(self.io.pad['get_program'].split(',')) - 1:])
 
 	# Set an UI value.
 	def setValueOld(self, varname, value):
 		try: 
-			if varname == "pid":
+			if varname == 'pid':
 				if value != 0: # value is zero when loading a program file
 					self._controls[varname + str(value)].select()
 			elif '_' in varname and varname[varname.rindex('_') - len(varname) + 1:] in ['red1', 'red2', 'green1', 'green2', 'blue1', 'blue2']:
@@ -487,12 +487,12 @@ class FreepadWindow(QWidget, Creator):
 				else:
 					print('setValue: ' + varname + ' not found in ' + str(self))
 		except Exception as e:
-			self.cprint("Unable to set " + varname +" = " + str(value) + ' ' + str(e))
+			self.cprint('Unable to set ' + varname + ' = ' + str(value) + ' ' + str(e))
 
 	# Set an UI value.
 	def setValue(self, varname, value):
 		try: 
-			if varname == "pid":
+			if varname == 'pid':
 				if value != 0: # value is zero when loading a program file
 					self._controls[varname + str(value)].select()
 			else:
@@ -507,7 +507,7 @@ class FreepadWindow(QWidget, Creator):
 				else:
 					print('setValue: ' + varname + ' not found in ' + str(self))
 		except Exception as e:
-			self.cprint("Unable to set " + varname +" = " + str(value) + ': ' + str(e))
+			self.cprint('Unable to set ' + varname + ' = ' + str(value) + ': ' + str(e))
 
 	def getValue(self, varname):
 		if varname not in  self._controls:
@@ -543,10 +543,10 @@ class FreepadWindow(QWidget, Creator):
 			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
 
 	def setProgram(self, pgm):
-		if "program" not in self.io.pad:
-			raise PadException('"program" not found in JSON file')
+		if 'program' not in self.io.pad:
+			raise PadException('"program" not found in JSON file.')
 		if len(pgm) != len(self._program):
-			raise PadException("received a program with a different size than expected according to JSON file.")
+			raise PadException('received a program with a different size than expected according to JSON file.')
 
 		self.settingProgram = True
 		self.unselPrograms()
@@ -555,7 +555,7 @@ class FreepadWindow(QWidget, Creator):
 				varname = self._program[i]
 				self.setValue(varname, int(pgm[i]))
 			except Exception as e:
-				raise PadException(varname + " not found in program: " + str(e))
+				raise PadException(varname + ' not found in program: ' + str(e))
 		self.settingProgram = False
 
 
@@ -567,7 +567,7 @@ class FreepadWindow(QWidget, Creator):
 	def unselPrograms(self):
 		if not self.settingProgram:
 			for p in range(1, self.nbPrograms + 1):
-				pgm = self.findChildren(QWidget, "pid" + str(p))
+				pgm = self.findChildren(QWidget, 'pid' + str(p))
 				if len(pgm) > 0:
 					pgm[0].unsel()
 			self.padNotes = [] # reinit
@@ -635,11 +635,11 @@ class FreepadWindow(QWidget, Creator):
 		self.padKeymap[pad_id] = key.lower()
 
 	def retranslateUi(self):
-		virtual = "" if self.io.isConnected else "virtual "
-		self.setWindowTitle(QCoreApplication.translate("Pads", u"Freepad " + virtual + self.midiname, None))
+		virtual = '' if self.io.isConnected else 'virtual '
+		self.setWindowTitle(QCoreApplication.translate('Pads', u'Freepad ' + virtual + self.midiname, None))
 		if self.nbPrograms > 0:
-			self.btnToRam.setText(QCoreApplication.translate("Pads", u"Send to RAM", None))
-		self.labelMC.setText(QCoreApplication.translate("Pads", u"Midi channel", None))
+			self.btnToRam.setText(QCoreApplication.translate('Pads', u'Send to RAM', None))
+		self.labelMC.setText(QCoreApplication.translate('Pads', u'Midi channel', None))
 
 	def keyPressEvent(self, event):
 		self._keyEvent(event, '_sendNoteOn')
