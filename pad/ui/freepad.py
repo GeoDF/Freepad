@@ -285,35 +285,38 @@ class FreepadWindow(QWidget, Creator):
 			filename = self._fileDialog(QFileDialog.ExistingFile, QFileDialog.AcceptOpen)
 			if filename != "":
 				QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-				with open(filename, "r") as fp:
-					lst = json.load(fp)
-					fp.close()
-					pgm = [0] + lst[0]
-					for pk in lst[1]:
-						ctlname = pk[0]
-						pkName = pk[1]
-						ctl = self._controls[ctlname]
-						ctl.cbName.lineEdit().setText(pkName)
-						if isinstance(ctl, Pad) and len(pk) > 2:
-							key = pk[2]
-							ctl.leKey.setText(key)
-							self.padKeymap[ctl.pad_id] = key
-							if len(pk) > 3:
-								ctl.level.setDefaultVelocity(pk[3])
-					self.setProgram(pgm)
-					self.unselPrograms()
-					# switch all lights off
-					for line in  self.device['layout']:
-						for ctlid in line:
-							if ctlid[0:1] == 'p':
-								self._controls[ctlid].lightOff()
-					self.setFocus() # to activate keyboard keys
-					if self.io.isConnected:
-						self.sendToRam()
+				self._loadProgram(filename)
 				QApplication.restoreOverrideCursor()
 
 		except Exception as e:
 			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
+
+	def _loadProgram(self, filename):
+		with open(filename, "r") as fp:
+			lst = json.load(fp)
+			fp.close()
+			pgm = [0] + lst[0]
+			for pk in lst[1]:
+				ctlname = pk[0]
+				pkName = pk[1]
+				ctl = self._controls[ctlname]
+				ctl.cbName.lineEdit().setText(pkName)
+				if isinstance(ctl, Pad) and len(pk) > 2:
+					key = pk[2]
+					ctl.leKey.setText(key)
+					self.padKeymap[ctl.pad_id] = key
+					if len(pk) > 3:
+						ctl.level.setDefaultVelocity(pk[3])
+			self.setProgram(pgm)
+			self.unselPrograms()
+			# switch all lights off
+			for line in  self.device['layout']:
+				for ctlid in line:
+					if ctlid[0:1] == 'p':
+						self._controls[ctlid].lightOff()
+			self.setFocus() # to activate keyboard keys
+			if self.io.isConnected:
+				self.sendToRam()
 
 	def saveProgram(self, event):
 		#try:
