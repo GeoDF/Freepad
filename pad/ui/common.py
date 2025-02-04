@@ -1,11 +1,12 @@
-from qtpy.QtCore import QMetaObject, Signal
+from qtpy.QtCore import QCoreApplication, QMetaObject, Signal
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QSpinBox, QWidget
 
-from pad.path import FREEPAD_PATH, imgUrl
+from pad.path import imgUrl
 
 FREEPAD_LGRADIENT = 'qlineargradient(spread:reflect, x1:1, y1:0.5, x2:1, y2:1, stop:0 #171719, stop:1 #080808);'
 FREEPAD_RGRADIENT = 'qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #080808, stop:1 #171719)'
 FREEPAD_RGRADIENT_OVER = 'qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.7, fx:0.5, fy:0.5, stop:0 #280808, stop:1 #171719)'
+FREEPAD_TOOLTIPS = False # tooltips needs improvements !
 
 class PadException(Exception):
 	def __init__(self, err):
@@ -32,9 +33,8 @@ class Spinput(QWidget, Creator):
 
 		self.createObj(u'lbl', QLabel(self))
 		self.lbl.setText(self.label)
-		#if QT_CONFIG(tooltip)
-		self.lbl.setToolTip(self.name)
-		#endif // QT_CONFIG(tooltip)
+		if FREEPAD_TOOLTIPS:
+			self.lbl.setToolTip(self.name)
 		self.hl.addWidget(self.lbl)
 		self.spin = self.createObj(name, QSpinBox(self.parent()))
 		arrow_size = 'width: 7px; height: 7px';
@@ -91,3 +91,7 @@ class Spinput(QWidget, Creator):
 
 	def value(self):
 		return self.spin.value()
+
+def tr(*args):
+	return QCoreApplication.translate(*args)
+

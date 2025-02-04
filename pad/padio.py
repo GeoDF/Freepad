@@ -221,9 +221,9 @@ class MidiConnectionListener(QObject):
 			self.out_names = m_out
 			_changed = True
 		if _changed:
-			if (len(in_added) > 0) or (len(out_added)) > 0:
+			if (len(in_added) > 0) and (len(out_added)) > 0:
 				self.devicePlugged.emit({'in': in_added, 'out': out_added})
-			if len(in_removed) > 0 or len(out_removed) > 0:
+			if len(in_removed) > 0 and len(out_removed) > 0:
 				self.deviceUnplugged.emit({'in': in_removed, 'out': out_removed})
 
 	def _compareLists(self, old, new):

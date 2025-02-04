@@ -1,9 +1,9 @@
-from qtpy.QtCore import QCoreApplication, QMetaObject, QSize, Qt, QTimer, Signal
+from qtpy.QtCore import QMetaObject, QSize, Qt, QTimer, Signal
 from qtpy.QtWidgets import QColorDialog, QComboBox, QFrame, QGraphicsDropShadowEffect, QHBoxLayout, \
 		QLineEdit, QPushButton, QSlider, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 from qtpy.QtGui import QColor
 
-from pad.ui.common import Creator, Spinput, FREEPAD_LGRADIENT, FREEPAD_RGRADIENT
+from pad.ui.common import Creator, Spinput, tr, FREEPAD_LGRADIENT, FREEPAD_RGRADIENT
 
 class Pad(QWidget, Creator):
 	sendNoteOn = Signal(int, int, int)
@@ -62,17 +62,20 @@ class Pad(QWidget, Creator):
 		subcontrols[vn + '_on_blue1'] = self
 		subcontrols[vn + '_on_blue2'] = self
 
-		self.setStyleSheet("Pad #padLW {"
-"border: 1px solid rgb(" + str(off_red) +',' + str(off_green) + ',' + str(off_blue) + "); border-radius: 5px;"
-"}"
-"Pad #cbName {"
-	"max-width: 120px;"
-	"background: transparent;"
-"}"
-"Pad #cbName QListView {"
-	"min-width: 150px;"
-	"border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;"
-"}"
+		self.setStyleSheet('''
+#padLW {
+	border: 1px solid rgb(''' + str(off_red) + ''',''' + str(off_green) + ''',''' + str(off_blue) + ''');
+	border-radius: 5px;
+}
+#cbName {
+	max-width: 120px;
+	background: transparent;
+}
+#cbName QListView {
+	min-width: 150px;
+	border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;
+}
+'''
 )
 
 		# Pad main layout
@@ -126,19 +129,19 @@ class Pad(QWidget, Creator):
 
 		ctlname = 'p' + self.pad_id + '_note'
 		self.spNote = Spinput()
-		self.spNote.setupUi(ctlname, QCoreApplication.translate("Pad", u"Note", None))
+		self.spNote.setupUi(ctlname, tr("Pad", u"Note", None))
 		self.vl2.addWidget(self.spNote)
 		subcontrols[ctlname] = self.spNote.spin
 
 		ctlname = 'p' + self.pad_id + '_cc'
 		self.spCC = Spinput()
-		self.spCC.setupUi(ctlname, QCoreApplication.translate("Pad", u"CC", None))
+		self.spCC.setupUi(ctlname, tr("Pad", u"CC", None))
 		self.vl2.addWidget(self.spCC)
 		subcontrols[ctlname] = self.spCC.spin
 
 		ctlname = 'p' + self.pad_id + '_pc'
 		self.spPC = Spinput()
-		self.spPC.setupUi(ctlname, QCoreApplication.translate("Pad", u"PC", None))
+		self.spPC.setupUi(ctlname, tr("Pad", u"PC", None))
 		self.vl2.addWidget(self.spPC)
 		subcontrols[ctlname] = self.spPC.spin
 
@@ -198,8 +201,8 @@ class Pad(QWidget, Creator):
 
 	def retranslateUi(self):
 		if self.bv:
-			self.cbBehavior.setItemText(0, QCoreApplication.translate("Pad", u"Tap", None))
-			self.cbBehavior.setItemText(1, QCoreApplication.translate("Pad", u"Toggle", None))
+			self.cbBehavior.setItemText(0, tr("Pad", u"Tap", None))
+			self.cbBehavior.setItemText(1, tr("Pad", u"Toggle", None))
 
 	def instrumentChanged(self, index):
 		if index > 0:
@@ -282,22 +285,29 @@ class Level(QSlider):
 		self.setMaximum(127)
 		self.setOrientation(Qt.Orientation.Vertical)
 		self.setStyleSheet(
-'QSlider::vertical {'
-	'width: 22px;'
-'}'
-'QSlider::groove:vertical {'
-	'width: 5px; border: 1px solid #111111;'
-	'background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(128, 85, 0, 255), stop:1 rgba(170, 0, 0, 255));'
-'}'
-'QSlider::sub-page:vertical {'
-	'width: 5px; border: 1px solid #000000; background: ' + FREEPAD_LGRADIENT + ';}'
-'QSlider::handle:vertical:focus {'
-	'width: 22px; margin-left: -4px; margin-right: -6px; height: 5px;'
-	'border: 1px outset #882200; border-radius: 3px; background: #441100;}'
-'QSlider::handle:vertical:hover {background: #882200;}')
+'''QSlider::vertical {
+	width: 22px;
+}
+QSlider::groove:vertical {
+	width: 5px; border: 1px solid #111111;
+	background: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0.011, stop:0 rgba(0, 85, 0, 255), stop:0.511211 rgba(128, 85, 0, 255), stop:1 rgba(170, 0, 0, 255));
+}
+QSlider::sub-page:vertical {
+	width: 5px; border: 1px solid #000000; background: ''' + FREEPAD_LGRADIENT + ''';
+}
+QSlider::handle:vertical:focus {
+	width: 22px; margin-left: -4px; margin-right: -6px; height: 5px;
+	border: 1px outset #882200; border-radius: 3px; background: #441100;
+}
+QSlider::handle:vertical:hover {
+	background: #882200;
+}'''
+)
 		self.defaultVelocity = 80 # velocity when sending midi notes
 		self._settingVelocity = False
 		self.valueChanged.connect(self.setDefaultVelocity)
+		self.sliderPressed.connect(self._sliderPressed)
+		self.sliderReleased.connect(self._sliderReleased)
 
 	def focusInEvent(self, *args, **kwargs):
 		self.setVelocity(self.defaultVelocity)
@@ -315,6 +325,12 @@ class Level(QSlider):
 		self._settingVelocity = True
 		self.setValue(v)
 		self._settingVelocity = False
+
+	def _sliderPressed(self):
+		self.setCursor(Qt.CursorShape.ClosedHandCursor)
+
+	def _sliderReleased(self):
+		self.setCursor(Qt.CursorShape.ArrowCursor)
 
 class keyEdit(QLineEdit):
 	def __init__(self, parent = None):

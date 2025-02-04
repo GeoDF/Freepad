@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 
-from qtpy.QtCore import QCoreApplication, QDir, QMetaObject
+from qtpy.QtCore import QDir, QMetaObject
 from qtpy.QtWidgets import QCheckBox, QDialog, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, \
 	QSizePolicy, QSpacerItem, QTabWidget, QTextBrowser, QRadioButton, QPushButton, QVBoxLayout, QStyle, QWidget
 from qtpy.QtGui import QDesktopServices, QIcon
 
 from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH
-from pad.ui.common import Creator
+from pad.ui.common import Creator, tr
 
 class FreepadOptionsWindow(QDialog, Creator):
 	def __init__(self, settings, parent = None):
@@ -128,14 +128,14 @@ class FreepadOptionsWindow(QDialog, Creator):
 	# setupUi
 
 	def retranslateUi(self):
-		self.setWindowTitle(QCoreApplication.translate("FrrepadOptions", "Freepad " + self.title + " options", None))
-		self.lblDrums.setText(QCoreApplication.translate("FrrepadOptions", u"Drums kit", None))
-		self.lblControls.setText(QCoreApplication.translate("FrrepadOptions", u"Controls kit", None))
-		self.rbDoremi.setText(QCoreApplication.translate("FrrepadOptions", u"Do Ré Mi", None))
-		self.rbCDE.setText(QCoreApplication.translate("FrrepadOptions", u"C D E ", None))
-		self.cbToolbar.setText(QCoreApplication.translate("FrrepadOptions", u"&Show midi messages", None))
-		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabOptions), QCoreApplication.translate("Dialog", u"Options", None))
-		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabHelp), QCoreApplication.translate("Dialog", u"Help", None))
+		self.setWindowTitle(tr("FrrepadOptions", "Freepad " + self.title + " options", None))
+		self.lblDrums.setText(tr("FrrepadOptions", u"Drums kit", None))
+		self.lblControls.setText(tr("FrrepadOptions", u"Controls kit", None))
+		self.rbDoremi.setText(tr("FrrepadOptions", u"Do Ré Mi", None))
+		self.rbCDE.setText(tr("FrrepadOptions", u"C D E ", None))
+		self.cbToolbar.setText(tr("FrrepadOptions", u"&Show midi messages", None))
+		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabOptions), tr("Dialog", u"Options", None))
+		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabHelp), tr("Dialog", u"Help", None))
 		# retranslateUi
 
 	def loadKit(self, kit):

@@ -1,8 +1,8 @@
-from qtpy.QtCore import QCoreApplication, QLineF, QMetaObject, QRectF, QPointF, QSize, Qt, Signal
+from qtpy.QtCore import QLineF, QMetaObject, QRectF, QPointF, QSize, Qt, Signal
 from qtpy.QtWidgets import QComboBox, QDial, QStyleOptionSlider, QVBoxLayout, QWidget
 from qtpy.QtGui import QBrush, QColor, QRadialGradient, QPainter, QPen
 
-from pad.ui.common import Creator, Spinput
+from pad.ui.common import Creator, Spinput, tr
 
 class Knob(QWidget, Creator):
 	sendControlChanged = Signal(int, int, int)
@@ -49,19 +49,19 @@ class Knob(QWidget, Creator):
 
 		ctlname = 'k' + self.kTitle + '_cc'
 		self.spCC = Spinput()
-		self.spCC.setupUi(ctlname, QCoreApplication.translate("Knob", u"CC", None))
+		self.spCC.setupUi(ctlname, tr("Knob", u"CC", None))
 		self.verticalLayout.addWidget(self.spCC)
 		subcontrols[ctlname] = self.spCC.spin
 
 		ctlname = 'k' + self.kTitle + '_lo'
 		self.spLO = Spinput()
-		self.spLO.setupUi(ctlname, QCoreApplication.translate("Knob", u"LO", None))
+		self.spLO.setupUi(ctlname, tr("Knob", u"LO", None))
 		self.verticalLayout.addWidget(self.spLO)
 		subcontrols[ctlname] = self.spLO.spin
 
 		ctlname = 'k' + self.kTitle + '_hi'
 		self.spHI = Spinput()
-		self.spHI.setupUi(ctlname, QCoreApplication.translate("Knob", u"HI", None))
+		self.spHI.setupUi(ctlname, tr("Knob", u"HI", None))
 		self.verticalLayout.addWidget(self.spHI)
 		subcontrols[ctlname] = self.spHI.spin
 
@@ -89,7 +89,7 @@ class Knob(QWidget, Creator):
 		return subcontrols
 
 	def retranslateUi(self, Knob):
-		self.cbName.lineEdit().setText(QCoreApplication.translate("Knob", u"K " + self.kTitle, None))
+		self.cbName.lineEdit().setText(tr("Knob", u"K " + self.kTitle, None))
 
 	def setValue(self, val):
 		val = (int(val) - self.spLO.value()) * 127 / (self.spHI.value() - self.spLO.value() + 0.000000000001)

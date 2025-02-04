@@ -1,13 +1,13 @@
 import os, json
 
-from qtpy.QtCore import QCoreApplication, QDir, QMetaObject, Qt, QTimer
+from qtpy.QtCore import QDir, QMetaObject, Qt, QTimer
 from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGridLayout, \
 	QHBoxLayout, QLabel, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QStatusBar, QSpinBox, \
 	QStyle, QVBoxLayout, QWidget
 from qtpy.QtGui import QIcon, QKeyEvent
 
 from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH, imgUrl
-from pad.ui.common import Creator, PadException, FREEPAD_LGRADIENT, FREEPAD_RGRADIENT, FREEPAD_RGRADIENT_OVER
+from pad.ui.common import Creator, PadException, tr, FREEPAD_LGRADIENT, FREEPAD_RGRADIENT, FREEPAD_RGRADIENT_OVER
 from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
 from pad.padio import PadIO
@@ -38,58 +38,74 @@ class FreepadWindow(QWidget, Creator):
 		self.titleColor = '#dfdddd'
 		self.noteColor = '#cfffff'
 
-		self.setStyleSheet('FreepadWindow * {'
-'color: white;'
-'}'
-'FreepadWindow, QStatusBar, Pad #padLW {'
-'background: ' + FREEPAD_LGRADIENT + ';'
-'}'
-'#cbName, Program #bTitle, QStatusBar {'
-'font-size: 12px; color: ' + self.titleColor + ';'
-'}'
-'QComboBox:focus, QComboBox:hover {'
-'border: 1px inset #441200; selection-color: #000022; selection-background-color: #8f2200;'
-'}'
-'QComboBox {'
-'border: 1px outset #111111; border-radius: 3px; background: transparent;'
-'}'
-'QComboBox QListView {'
-'border: 1px solid #8f2200; border-radius: 3px; border-top-left-radius: 0;'
-'}'
-'QComboBox::drop-down {'
-'width: 12px; height: 12px;'
-'subcontrol-origin: border;'
-'subcontrol-position: center right;'
-'}'
-'QComboBox::down-arrow {'
-'background: none; border: none;'
-'image: url("' + imgUrl('spindown.png') +'");'
-'}'
-'QComboBox::down-arrow:hover {'
-'image: url("' + imgUrl('spindown_hover.png') +'");'
-'}'
-'Pad #btnNote, QStatusBar {'
-'font-size: 12px; color: ' + self.noteColor + ';'
-'}'
-'QComboBox QAbstractItemView {'
-'selection-background-color: #8f2200; selection-color: #000022;'
-'}'
-'QPushButton, QComboBox, QComboBox QListView {'
-'background: ' + FREEPAD_RGRADIENT + ';'
-'}'
-'QPushButton:hover {'
-'background: ' + FREEPAD_RGRADIENT_OVER + '; color: #8fffdf;'
-'}'
-'QPushButton {'
-'border: 2px outset #171719; padding: 5px; padding-left: 15px; padding-right: 15px;'
-'}'
-'QPushButton::pressed {'
-'border: 2px inset #171719; background: ' + FREEPAD_LGRADIENT + ';'
-'}'
-'QPushButton::disabled {'
-'color: #666666;'
-'}'
-)
+		self.setStyleSheet('''
+FreepadWindow * {
+	color: white;
+}
+FreepadWindow, QStatusBar, Pad #padLW {
+	background: ''' + FREEPAD_LGRADIENT + ''';
+}
+#cbName, Program #bTitle, QStatusBar {
+	font-size: 12px; color: ''' + self.titleColor + ''';
+}
+QComboBox:focus, QComboBox:hover {
+	border: 1px inset #441200;
+	selection-color: #000022;
+	selection-background-color: #8f2200;
+}
+QComboBox {
+	border: 1px outset #111111;
+	border-radius: 3px;
+	background: transparent;
+}
+QComboBox QListView {
+	border: 1px solid #8f2200;
+	border-radius: 3px;
+	border-top-left-radius: 0;
+}
+QComboBox::drop-down {
+	width: 12px; height: 12px;
+	subcontrol-origin: border;
+	subcontrol-position: center right;
+}
+QComboBox::down-arrow {
+	background: none;
+	border: none;
+	image: url("''' + imgUrl('spindown.png') + '''");
+}
+QComboBox::down-arrow:hover {
+	image: url("''' + imgUrl('spindown_hover.png') + '''");
+}
+QComboBox QAbstractItemView, QComboBox:!editable QAbstractItemView {
+	selection-background-color: #8f2200; selection-color: #000022;
+}
+Pad #btnNote, QStatusBar {
+	font-size: 12px; color: ''' + self.noteColor + ''';
+}
+QPushButton, QComboBox, QComboBox QListView {
+	background: ''' + FREEPAD_RGRADIENT + ''';
+}
+QPushButton:hover {
+background: ''' + FREEPAD_RGRADIENT_OVER + '''; color: #8fffdf;
+}
+QPushButton {
+	border: 2px outset #171719; padding: 5px; padding-left: 15px; padding-right: 15px;
+}
+QPushButton::pressed {
+	border: 2px inset #171719; background: ''' + FREEPAD_LGRADIENT + ''';
+}
+QPushButton::disabled {
+color: #666666;
+}
+QToolTip { 
+	background: ''' + FREEPAD_LGRADIENT + '''; 
+	color: white; 
+	border: 1px solid #8f2200;
+	border-radius: 3px;
+	border-top-left-radius: 0;
+	padding: 3px;
+	}
+''')
 		self.in_symbol = '\u25B6'
 		self.out_symbol = '\u25C0'
 
@@ -636,10 +652,10 @@ class FreepadWindow(QWidget, Creator):
 
 	def retranslateUi(self):
 		virtual = '' if self.io.isConnected else 'virtual '
-		self.setWindowTitle(QCoreApplication.translate('Pads', u'Freepad ' + virtual + self.midiname, None))
+		self.setWindowTitle(tr('Pads', u'Freepad ' + virtual + self.midiname, None))
 		if self.nbPrograms > 0:
-			self.btnToRam.setText(QCoreApplication.translate('Pads', u'Send to RAM', None))
-		self.labelMC.setText(QCoreApplication.translate('Pads', u'Midi channel', None))
+			self.btnToRam.setText(tr('Pads', u'Send to RAM', None))
+		self.labelMC.setText(tr('Pads', u'Midi channel', None))
 
 	def keyPressEvent(self, event):
 		self._keyEvent(event, '_sendNoteOn')

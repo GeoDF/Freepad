@@ -1,7 +1,7 @@
-from qtpy.QtCore import QCoreApplication, QMetaObject, QSize, Qt
+from qtpy.QtCore import QMetaObject, Qt
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 
-from pad.ui.common import Creator
+from pad.ui.common import Creator, tr
 
 class Program(QWidget , Creator):
 	def __init__(self, n, parent = None):
@@ -56,10 +56,10 @@ class Program(QWidget , Creator):
 		QMetaObject.connectSlotsByName(self)
 
 	def retranslateUi(self):
-		self.pTitle = QCoreApplication.translate("Program", u"Program" + " " + self.n, None)
+		self.pTitle = tr("Program", u"Program" + " " + self.n, None)
 		self.bTitle.setText(self.pTitle)
-		self.btnGet.setText(QCoreApplication.translate("Program", u"Get", None))
-		self.btnSend.setText(QCoreApplication.translate("Program", u"Send", None))
+		self.btnGet.setText(tr("Program", u"Get", None))
+		self.btnSend.setText(tr("Program", u"Send", None))
 
 	def sendProgram(self):
 		self.parent().sendProgram(self.n)
