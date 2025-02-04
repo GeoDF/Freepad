@@ -1,22 +1,17 @@
 # Freepad
-Free editor for Akai LPD8 midi pads controller
+Free editor for Akai LPD8 midi pads controller, and virtual pads for Linux, Macos, and Window.
 
 ![freepad_01](https://github.com/user-attachments/assets/b4e7dae0-ece2-4e8c-91b8-73474cb06438)
 
 Features:
-- Virtual pad : send MIDI notes and control change messages.
-- Get and send programs from and to your LPD8.
-- Load and save programs from and to your computer (with instruments names).
-- Show MIDI messages sent by LPD8.
-- Display a visual feedback.
-- Display instrument names corresponding to notes in drum kits.
+- get and send programs from and to your LPD8 (LPD8 editor).
+- virtual pad mode: send MIDI notes and MIDI control change messages.
+- load and save programs from and to your computer (with instruments names and default velocity for virtual pads).
+- show received and sent MIDI messages.
+- display instrument names corresponding to notes in drum kits. You can choose instruments in the drop-down-list.
 - switch automatically betwwen the virtual pad mode and the editor mode when you plug/unplug your LPD8.
+- display a visual feedback.
+- predifined virtual pads : vp9, vp16, ...
 
-IMPORTANT NOTES: the LPD8 pad device have 4 programs, and the computer is not advised when you change the program used on your LPD8 with its "Program" button. Then, Freepad cannot guess anymore which pad or knob send which note or control change message. In the same way, when you change the note associated to a pad in Freepad, you loose the synchornisation with the LPD8 until you press "Send" or "Send to RAM".
-And if you set the same note for two or more pads or the same control change to two or more knobs, Freepad cannot guess which pad or knob is used. 
-In such cases, a warning message is briefly displayed.
-Sending a program to the LPD8, getting one, or loading a program from your computer restore the synchronisation.
-
-The LPD8 MK2 is NOT SUPPORTED yet ... but it will be :
-![virtual_mk2](https://github.com/user-attachments/assets/4044faf2-f7a2-4036-97bc-be4bee00255f)
+Help and more infos in wiki : https://github.com/GeoDF/Freepad/wiki
 
