@@ -7,7 +7,8 @@
 	"pad": ["note", "pc", "cc", "off_red1", "off_red2", "off_green1", "off_green2", "off_blue1",  "off_blue2", "on_red1",  "on_red2", "on_green1", "on_green2", "on_blue1", "on_blue2", "mc"],
 	"knob": ["cc", "lo", "hi", "mc"],
 	"nb_programs" : 4,
-	"get_program": "47,7f,4c,03,00,01,id",
+	"get_program": "47,7f,4c,03,00,01,pid",
+	"send_program": "47,7f,4c,01,01,29,pid",
 	"program": ["pid", "mc",
 		"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8",
 		"k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8"
