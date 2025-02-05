@@ -1,0 +1,4 @@
+PyQT6
+qtpy
+mido
+rtmidi
