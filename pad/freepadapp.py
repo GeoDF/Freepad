@@ -1,10 +1,11 @@
-import json, os
+import json, os, argparse
 from pathlib import Path
 
 from qtpy.QtWidgets import QApplication, QMessageBox
-from qtpy.QtCore import QCommandLineOption, QCommandLineParser, QSharedMemory, QThread, QSettings
+from qtpy.QtCore import QSharedMemory, QThread, QSettings
 
-from pad.path import FREEPAD_PATH
+from pad.path import FREEPAD_PATH, FREEPAD_IS_COMPILED
+from pad.ui.common import tr
 from pad.ui import FreepadWindow
 from pad.padio import Mid, MidiConnectionListener
 
@@ -45,18 +46,15 @@ class FreepadApp(QApplication):
 		self.defaultControls = {}
 		self.qsettings = QSettings('geomaticien.com', 'Freepad')
 		self.padname = None
-		parser = QCommandLineParser()
-		parser.addHelpOption()
-		parser.addVersionOption()
-		debug_option = QCommandLineOption(
-			["d", "debug"],
-			"Debug")
-		parser.addOption(debug_option)
-		parser.process(self)
-		self.debug = parser.isSet(debug_option)
-		argv = parser.positionalArguments()
-		if len(argv) > 0:
-			self.padname = argv[0]
+		parser = argparse.ArgumentParser(
+			prog = 'freepad' if FREEPAD_IS_COMPILED else 'python -m',
+			description = 'Virtual midi controller and editor for real devices.',
+			epilog = 'Freepad version: ' + self.applicationVersion())
+		parser.add_argument('model', nargs = '?', default = 'LPD8', help = tr('device name, quoted if this name contains spaces.'))
+		parser.add_argument('-d', '--debug', help = tr('debug mode'), action='store_true', default = False)
+		args = parser.parse_args()
+		self.debug = args.debug
+		self.padname = args.model
 
 		# Read known pads
 		pdir = os.path.join(FREEPAD_PATH, "pads")
