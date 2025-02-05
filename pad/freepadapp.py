@@ -102,7 +102,7 @@ class FreepadApp(QApplication):
 				_openUI = True
 			else:
 				print('"' + self.padname + '" is not a known device.')
-				self.exit()
+				self._quit()
 
 		if _openUI:
 		# Start a MidiConnectionListener in the background
@@ -116,7 +116,7 @@ class FreepadApp(QApplication):
 			self.mlcThread.start()
 		else:
 			print('No pads found.')
-			self.exit()
+			self._quit()
 
 	def _get1stDefault(self, d):
 		path = FREEPAD_PATH.joinpath('midi').joinpath(d)
@@ -151,7 +151,7 @@ class FreepadApp(QApplication):
 			msg = mn + ' already started'
 			mb = QMessageBox(QMessageBox.Warning, 'Freepad', msg)
 			mb.exec()
-			self.exit()
+			self._quit()
 		else:
 			params = {'device': self.knownPads[mn],
 							'in_name': in_name,
@@ -180,13 +180,16 @@ class FreepadApp(QApplication):
 			if mn == Mid.shortMidiName(in_midiname):
 				self.openedPads[mn].unplugged()
 
-
 	def cleanExit(self):
 		self.sharedM.attach()
 		self.sharedM.unlock()
 		self.sharedM.detach()
 		self.mlcThread.quit()
 
+	def _quit(self):
+		self.quit()
+		self.exit()
+		sys.exit()
 
 
 
