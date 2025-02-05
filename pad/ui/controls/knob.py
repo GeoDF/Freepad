@@ -2,7 +2,7 @@ from qtpy.QtCore import QLineF, QMetaObject, QRectF, QPointF, QSize, Qt, Signal
 from qtpy.QtWidgets import QComboBox, QDial, QStyleOptionSlider, QVBoxLayout, QWidget
 from qtpy.QtGui import QBrush, QColor, QRadialGradient, QPainter, QPen
 
-from pad.ui.common import Creator, Spinput, tr
+from pad.ui.common import Creator, Spinput, tr, FREEPAD_BORD_COLOR
 
 class Knob(QWidget, Creator):
 	sendControlChanged = Signal(int, int, int)
@@ -18,13 +18,14 @@ class Knob(QWidget, Creator):
 		for p in params:
 			setattr(self, p, params[p])
 
-		self.setStyleSheet("Knob #cbName {"
-"background: transparent;"
-"}"
-"Knob #cbName QListView {"
-"min-width: 150px;"
-"border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;"
-"}"
+		self.setStyleSheet('''
+Knob #cbName {
+	background: transparent;
+}
+Knob #cbName QListView {
+	min-width: 150px;
+	border: 1px inset ''' + FREEPAD_BORD_COLOR + '''; border-radius: 3px; border-top-left-radius: 0;
+}'''
 )
 
 		self.createObj(u"knobLW", QWidget(self))
@@ -49,19 +50,19 @@ class Knob(QWidget, Creator):
 
 		ctlname = 'k' + self.kTitle + '_cc'
 		self.spCC = Spinput()
-		self.spCC.setupUi(ctlname, tr("Knob", u"CC", None))
+		self.spCC.setupUi(ctlname, tr(u"CC", None))
 		self.verticalLayout.addWidget(self.spCC)
 		subcontrols[ctlname] = self.spCC.spin
 
 		ctlname = 'k' + self.kTitle + '_lo'
 		self.spLO = Spinput()
-		self.spLO.setupUi(ctlname, tr("Knob", u"LO", None))
+		self.spLO.setupUi(ctlname, tr(u"LO", None))
 		self.verticalLayout.addWidget(self.spLO)
 		subcontrols[ctlname] = self.spLO.spin
 
 		ctlname = 'k' + self.kTitle + '_hi'
 		self.spHI = Spinput()
-		self.spHI.setupUi(ctlname, tr("Knob", u"HI", None))
+		self.spHI.setupUi(ctlname, tr(u"HI", None))
 		self.verticalLayout.addWidget(self.spHI)
 		subcontrols[ctlname] = self.spHI.spin
 
@@ -74,7 +75,7 @@ class Knob(QWidget, Creator):
 			self.cbMC.addItem("Global")
 			self.cbMC.setCurrentIndex(16)
 			self.mc = 16
-			self.cbMC.currentIndexChanged.connect(lambda i: print(str(i)))
+			self.cbMC.currentIndexChanged.connect(self.setMC)
 			self.verticalLayout.addWidget(self.cbMC)
 			subcontrols[ctlname] = self.cbMC
 
@@ -89,11 +90,14 @@ class Knob(QWidget, Creator):
 		return subcontrols
 
 	def retranslateUi(self, Knob):
-		self.cbName.lineEdit().setText(tr("Knob", u"K " + self.kTitle, None))
+		self.cbName.lineEdit().setText(tr(u"K " + self.kTitle, None))
 
 	def setValue(self, val):
 		val = (int(val) - self.spLO.value()) * 127 / (self.spHI.value() - self.spLO.value() + 0.000000000001)
 		self.pot.setValue(int(val))
+
+	def setMC(self, mc):
+		self.mc = mc
 
 	def ccChanged(self, index):
 		if index > 0:

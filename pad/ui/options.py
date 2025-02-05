@@ -128,14 +128,14 @@ class FreepadOptionsWindow(QDialog, Creator):
 	# setupUi
 
 	def retranslateUi(self):
-		self.setWindowTitle(tr("FrrepadOptions", "Freepad " + self.title + " options", None))
-		self.lblDrums.setText(tr("FrrepadOptions", u"Drums kit", None))
-		self.lblControls.setText(tr("FrrepadOptions", u"Controls kit", None))
-		self.rbDoremi.setText(tr("FrrepadOptions", u"Do Ré Mi", None))
-		self.rbCDE.setText(tr("FrrepadOptions", u"C D E ", None))
-		self.cbToolbar.setText(tr("FrrepadOptions", u"&Show midi messages", None))
-		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabOptions), tr("Dialog", u"Options", None))
-		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabHelp), tr("Dialog", u"Help", None))
+		self.setWindowTitle(tr("Freepad " + self.title + " options", None))
+		self.lblDrums.setText(tr(u"Drums kit", None))
+		self.lblControls.setText(tr(u"Controls kit", None))
+		self.rbDoremi.setText(tr(u"Do Ré Mi", None))
+		self.rbCDE.setText(tr(u"C D E ", None))
+		self.cbToolbar.setText(tr(u"&Show midi messages", None))
+		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabOptions), tr(u"Options", None))
+		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabHelp), tr(u"Help", None))
 		# retranslateUi
 
 	def loadKit(self, kit):

@@ -7,7 +7,14 @@ from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGri
 from qtpy.QtGui import QIcon, QKeyEvent
 
 from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH, imgUrl
-from pad.ui.common import Creator, PadException, tr, FREEPAD_LGRADIENT, FREEPAD_RGRADIENT, FREEPAD_RGRADIENT_OVER
+from pad.ui.common import Creator, \
+	PadException, tr, \
+	FREEPAD_TITLE_COLOR, \
+	FREEPAD_NOTE_COLOR, \
+	FREEPAD_BORD_COLOR, \
+	FREEPAD_LGRADIENT, \
+	FREEPAD_RGRADIENT, \
+	FREEPAD_RGRADIENT_OVER
 from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
 from pad.padio import PadIO
@@ -35,21 +42,18 @@ class FreepadWindow(QWidget, Creator):
 
 		self._program = self.io.program
 
-		self.titleColor = '#dfdddd'
-		self.noteColor = '#cfffff'
-
 		self.setStyleSheet('''
 FreepadWindow * {
-	color: white;
+	color: ''' + FREEPAD_TITLE_COLOR + ''';
 }
 FreepadWindow, QStatusBar, Pad #padLW {
 	background: ''' + FREEPAD_LGRADIENT + ''';
 }
 #cbName, Program #bTitle, QStatusBar {
-	font-size: 12px; color: ''' + self.titleColor + ''';
+	font-size: 12px; color: ''' + FREEPAD_TITLE_COLOR + ''';
 }
 QComboBox:focus, QComboBox:hover {
-	border: 1px inset #441200;
+	border: 1px inset ''' + FREEPAD_BORD_COLOR + ''';
 	selection-color: #000022;
 	selection-background-color: #8f2200;
 }
@@ -59,28 +63,36 @@ QComboBox {
 	background: transparent;
 }
 QComboBox QListView {
-	border: 1px solid #8f2200;
+	border: 1px solid ''' + FREEPAD_BORD_COLOR + ''';
 	border-radius: 3px;
 	border-top-left-radius: 0;
 }
+QComboBox QListView QScrollBar:vertical {
+	background: ''' + FREEPAD_LGRADIENT + ''';
+}
+QComboBox QListView QScrollBar::up-arrow {
+	image: url("''' + imgUrl('spinup.png') + '''");
+}
+QComboBox QListView QScrollBar::down-arrow {
+	image: url("''' + imgUrl('spindown.png') + '''");
+}
 QComboBox::drop-down {
-	width: 12px; height: 12px;
 	subcontrol-origin: border;
 	subcontrol-position: center right;
+	border: none;
 }
 QComboBox::down-arrow {
-	background: none;
-	border: none;
+	width: 7px; height: 7px;
 	image: url("''' + imgUrl('spindown.png') + '''");
 }
 QComboBox::down-arrow:hover {
 	image: url("''' + imgUrl('spindown_hover.png') + '''");
 }
-QComboBox QAbstractItemView, QComboBox:!editable QAbstractItemView {
+QComboBox QListView {
 	selection-background-color: #8f2200; selection-color: #000022;
 }
 Pad #btnNote, QStatusBar {
-	font-size: 12px; color: ''' + self.noteColor + ''';
+	font-size: 12px; color: ''' + FREEPAD_NOTE_COLOR + ''';
 }
 QPushButton, QComboBox, QComboBox QListView {
 	background: ''' + FREEPAD_RGRADIENT + ''';
@@ -100,7 +112,7 @@ color: #666666;
 QToolTip { 
 	background: ''' + FREEPAD_LGRADIENT + '''; 
 	color: white; 
-	border: 1px solid #8f2200;
+	border: 1px solid ''' + FREEPAD_BORD_COLOR + ''';
 	border-radius: 3px;
 	border-top-left-radius: 0;
 	padding: 3px;
@@ -217,6 +229,9 @@ QToolTip {
 		self.hLayoutMC.addWidget(self.labelMC)
 		self.createObj(u'mc', QComboBox())
 		self.mc.setMinimumWidth(60)
+		self.mc.setEditable(True)
+		self.mc.lineEdit().setReadOnly(True)
+		self.mc.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
 		for ch in range(1,17):
 			sp = '  ' if ch < 10 else ''
 			self.mc.addItem(sp + str(ch))
@@ -652,10 +667,10 @@ QToolTip {
 
 	def retranslateUi(self):
 		virtual = '' if self.io.isConnected else 'virtual '
-		self.setWindowTitle(tr('Pads', u'Freepad ' + virtual + self.midiname, None))
+		self.setWindowTitle(tr(u'Freepad ' + virtual + self.midiname, None))
 		if self.nbPrograms > 0:
-			self.btnToRam.setText(tr('Pads', u'Send to RAM', None))
-		self.labelMC.setText(tr('Pads', u'Midi channel', None))
+			self.btnToRam.setText(tr(u'Send to RAM', None))
+		self.labelMC.setText(tr(u'Midi channel', None))
 
 	def keyPressEvent(self, event):
 		self._keyEvent(event, '_sendNoteOn')

@@ -3,7 +3,8 @@ from qtpy.QtWidgets import QColorDialog, QComboBox, QFrame, QGraphicsDropShadowE
 		QLineEdit, QPushButton, QSlider, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 from qtpy.QtGui import QColor
 
-from pad.ui.common import Creator, Spinput, tr, FREEPAD_LGRADIENT, FREEPAD_RGRADIENT
+from pad.ui.common import Creator, Spinput, tr, \
+	FREEPAD_BORD_COLOR,FREEPAD_LGRADIENT, FREEPAD_RGRADIENT
 
 class Pad(QWidget, Creator):
 	sendNoteOn = Signal(int, int, int)
@@ -73,7 +74,7 @@ class Pad(QWidget, Creator):
 }
 #cbName QListView {
 	min-width: 150px;
-	border: 1px inset #441200; border-radius: 3px; border-top-left-radius: 0;
+	border: 1px inset ''' + FREEPAD_BORD_COLOR + '''; border-radius: 3px; border-top-left-radius: 0;
 }
 '''
 )
@@ -129,25 +130,28 @@ class Pad(QWidget, Creator):
 
 		ctlname = 'p' + self.pad_id + '_note'
 		self.spNote = Spinput()
-		self.spNote.setupUi(ctlname, tr("Pad", u"Note", None))
+		self.spNote.setupUi(ctlname, tr(u"Note", None))
 		self.vl2.addWidget(self.spNote)
 		subcontrols[ctlname] = self.spNote.spin
 
 		ctlname = 'p' + self.pad_id + '_cc'
 		self.spCC = Spinput()
-		self.spCC.setupUi(ctlname, tr("Pad", u"CC", None))
+		self.spCC.setupUi(ctlname, tr(u"CC", None))
 		self.vl2.addWidget(self.spCC)
 		subcontrols[ctlname] = self.spCC.spin
 
 		ctlname = 'p' + self.pad_id + '_pc'
 		self.spPC = Spinput()
-		self.spPC.setupUi(ctlname, tr("Pad", u"PC", None))
+		self.spPC.setupUi(ctlname, tr(u"PC", None))
 		self.vl2.addWidget(self.spPC)
 		subcontrols[ctlname] = self.spPC.spin
 
 		if self.bv:
 			ctlname = 'p' + self.pad_id + '_bv'
 			self.cbBehavior = self.createObj(ctlname, QComboBox(self.padLW))
+			self.cbBehavior.setEditable(True)
+			self.cbBehavior.lineEdit().setReadOnly(True)
+			self.cbBehavior.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
 			self.cbBehavior.addItem("")
 			self.cbBehavior.addItem("")
 			self.cbBehavior.currentIndexChanged.connect(self.valueChanged)
@@ -157,6 +161,9 @@ class Pad(QWidget, Creator):
 		if self.mc < 16:
 			ctlname = 'p' + self.pad_id + '_mc'
 			self.cbMC = self.createObj("p" + self.pad_id + "_mc", QComboBox(self.padLW))
+			self.cbMC.setEditable(True)
+			self.cbMC.lineEdit().setReadOnly(True)
+			self.cbMC.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
 			for ch in range(1,17):
 				sp = "  " if ch < 10 else ""
 				self.cbMC.addItem(sp + str(ch))
@@ -201,8 +208,8 @@ class Pad(QWidget, Creator):
 
 	def retranslateUi(self):
 		if self.bv:
-			self.cbBehavior.setItemText(0, tr("Pad", u"Tap", None))
-			self.cbBehavior.setItemText(1, tr("Pad", u"Toggle", None))
+			self.cbBehavior.setItemText(0, tr(u"Tap", None))
+			self.cbBehavior.setItemText(1, tr(u"Toggle", None))
 
 	def instrumentChanged(self, index):
 		if index > 0:
@@ -262,20 +269,24 @@ str(128 * self.off_blue1 + self.off_blue2) + ');}'
 		self.lightOff()
 
 	def chooseColor(self, col):
-		color = QColorDialog.getColor()
-		btn = getattr(self, "p" + self.pad_id + "_" + col)
-		btn.setStyleSheet('background-color: ' + color.name() + ';')
-		red = color.red()
-		green = color.green()
-		blue = color.blue()
-		setattr(self, col + '_red1', int(red / 128))
-		setattr(self, col + '_red2', red % 128)
-		setattr(self, col + '_green1', int(green / 128))
-		setattr(self, col + '_green2', green % 128)
-		setattr(self, col + '_blue1', int(blue / 128))
-		setattr(self, col + '_blue2', blue % 128)
-		if col == 'off':
-			self.lightOff()
+		red = 128 * getattr(self, col + '_red1') + getattr(self, col + '_red1')
+		green = 128 * getattr(self, col + '_green1') + getattr(self, col + '_green2')
+		blue = 128 * getattr(self, col + '_blue1') + getattr(self, col + '_blue2')
+		color = QColorDialog.getColor(QColor(red, green, blue), self)
+		if color.isValid():
+			btn = getattr(self, "p" + self.pad_id + "_" + col)
+			btn.setStyleSheet('background-color: ' + color.name() + ';')
+			red = color.red()
+			green = color.green()
+			blue = color.blue()
+			setattr(self, col + '_red1', int(red / 128))
+			setattr(self, col + '_red2', red % 128)
+			setattr(self, col + '_green1', int(green / 128))
+			setattr(self, col + '_green2', green % 128)
+			setattr(self, col + '_blue1', int(blue / 128))
+			setattr(self, col + '_blue2', blue % 128)
+			if col == 'off':
+				self.lightOff()
 
 
 class Level(QSlider):
@@ -338,10 +349,16 @@ class keyEdit(QLineEdit):
 		self.setFixedSize(QSize(20,20))
 		self.setMaxLength(1)
 		self.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-		self.setStyleSheet(
-'QLineEdit {border: 1px outset #111111; border-radius: 3px; background: ' + FREEPAD_RGRADIENT + '; selection-color: #ff3800; selection-background-color: #001828;}'
-'QLineEdit:focus, QLineEdit:hover {border: 1px inset #441200;}'
-)
+		self.setStyleSheet('''
+QLineEdit {
+	border: 1px outset #111111;
+	border-radius: 3px; background: ''' + FREEPAD_RGRADIENT + ''';
+	selection-color: #ff3800;
+	selection-background-color: #001828;
+}
+QLineEdit:focus, QLineEdit:hover {
+	border: 1px inset ''' + FREEPAD_BORD_COLOR + ''';
+}''')
 
 	def focusInEvent(self, *args, **kwargs):
 		QTimer.singleShot(0, self.selectAll)

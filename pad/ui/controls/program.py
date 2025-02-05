@@ -56,10 +56,10 @@ class Program(QWidget , Creator):
 		QMetaObject.connectSlotsByName(self)
 
 	def retranslateUi(self):
-		self.pTitle = tr("Program", u"Program" + " " + self.n, None)
+		self.pTitle = tr(u'Program' + ' ' + self.n, None)
 		self.bTitle.setText(self.pTitle)
-		self.btnGet.setText(tr("Program", u"Get", None))
-		self.btnSend.setText(tr("Program", u"Send", None))
+		self.btnGet.setText(tr(u'Get', None))
+		self.btnSend.setText(tr(u'Send', None))
 
 	def sendProgram(self):
 		self.parent().sendProgram(self.n)
@@ -71,7 +71,7 @@ class Program(QWidget , Creator):
 		self.lblTitleChecked.setText('<font color="green">\u2714</font>')
 
 	def unsel(self):
-		self.lblTitleChecked.setText("")
+		self.lblTitleChecked.setText('')
 
 	def setEnabled(self, val):
 		self.bTitle.setEnabled(val)
