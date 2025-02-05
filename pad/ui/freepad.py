@@ -338,6 +338,8 @@ QToolTip {
 					self.padKeymap[ctl.pad_id] = key
 					if len(pk) > 3:
 						ctl.level.setDefaultVelocity(pk[3])
+				elif isinstance(ctl, Knob) and len(pk) > 2:
+					ctl.pot.setValue(pk[2])
 			self.setProgram(pgm)
 			self.unselPrograms()
 			# switch all lights off
@@ -350,15 +352,15 @@ QToolTip {
 				self.sendToRam()
 
 	def saveProgram(self, event):
-		#try:
+		try:
 			filename = self._fileDialog(QFileDialog.AnyFile, QFileDialog.AcceptSave)
 			if filename != '':
 				with open(filename, 'w') as fp:
 					pgm = self.program()
 					json.dump([pgm[1:], self._ctlVars()], fp)
 					fp.close()
-		#except Exception as e:
-			#self.cprint('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
+		except Exception as e:
+			self.cprint('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
 
 	# return control names and keyboard keys
 	def _ctlVars(self):
@@ -369,7 +371,7 @@ QToolTip {
 				if isinstance(ctl, Pad):
 					pkn.append([control, ctl.cbName.lineEdit().text(), ctl.leKey.text(), ctl.level.defaultVelocity])
 				else:
-					pkn.append([control, ctl.cbName.lineEdit().text()])
+					pkn.append([control, ctl.cbName.lineEdit().text(), ctl.pot.value()])
 		return pkn
 
 	# slot called when receiving a midi message
