@@ -11,7 +11,10 @@ Features:
 - display instrument names corresponding to notes in drum kits. You can choose instruments in the drop-down-list.
 - switch automatically betwwen the virtual pad mode and the editor mode when you plug/unplug your LPD8.
 - display a visual feedback.
-- predifined virtual pads : vp9, vp16, ...
+- predifined virtual pads :
+
+![vp9_et_vp16](https://github.com/user-attachments/assets/0e59477f-e18d-42fd-96de-48265e514410)
+
 
 Help and more infos in wiki : https://github.com/GeoDF/Freepad/wiki
 
