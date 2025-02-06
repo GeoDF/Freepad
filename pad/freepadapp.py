@@ -62,7 +62,7 @@ class FreepadApp(QApplication):
 					print('midiname not found in ' + pad)
 			f.close()
 		parser = argparse.ArgumentParser(
-			prog = 'freepad' if FREEPAD_IS_COMPILED else 'python -m',
+			prog = 'freepad' if FREEPAD_IS_COMPILED else 'python -m pad',
 			description = 'Freepad version ' + self.applicationVersion() +'. Virtual midi controller and editor for real devices.',
 			epilog = '')
 		parser.add_argument('model', nargs = '?', default = 'LPD8', help = ', '.join(['"{}"'.format(n) for n in self.knownPadsNames]))
