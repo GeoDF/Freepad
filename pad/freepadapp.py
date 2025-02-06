@@ -46,16 +46,6 @@ class FreepadApp(QApplication):
 		self.defaultControls = {}
 		self.qsettings = QSettings('geomaticien.com', 'Freepad')
 		self.padname = None
-		parser = argparse.ArgumentParser(
-			prog = 'freepad' if FREEPAD_IS_COMPILED else 'python -m',
-			description = 'Virtual midi controller and editor for real devices.',
-			epilog = 'Freepad version: ' + self.applicationVersion())
-		parser.add_argument('model', nargs = '?', default = 'LPD8', help = tr('device name, quoted if this name contains spaces.'))
-		parser.add_argument('-d', '--debug', help = tr('debug mode'), action='store_true', default = False)
-		args = parser.parse_args()
-		self.debug = args.debug
-		self.padname = args.model
-
 		# Read known pads
 		pdir = os.path.join(FREEPAD_PATH, "pads")
 		for p in os.listdir(pdir):
@@ -71,6 +61,15 @@ class FreepadApp(QApplication):
 				else:
 					print('midiname not found in ' + pad)
 			f.close()
+		parser = argparse.ArgumentParser(
+			prog = 'freepad' if FREEPAD_IS_COMPILED else 'python -m',
+			description = 'Freepad version ' + self.applicationVersion() +'. Virtual midi controller and editor for real devices.',
+			epilog = '')
+		parser.add_argument('model', nargs = '?', default = 'LPD8', help = ', '.join(['"{}"'.format(n) for n in self.knownPadsNames]))
+		parser.add_argument('-d', '--debug', help = tr('debug mode'), action='store_true', default = False)
+		args = parser.parse_args()
+		self.debug = args.debug
+		self.padname = args.model
 
 		# Load default kit and default controls
 		self._loadKit(self.defaultKit, self.qsettings.value('lastkit', self._get1stDefault('kits')))
