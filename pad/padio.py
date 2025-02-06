@@ -29,11 +29,17 @@ class Mid(object):
 
 	@staticmethod
 	def open_input(midiname):
-		return mido.open_input(midiname, False)
+		try:
+			return mido.open_input(midiname, False)
+		except:
+			return None
 	
 	@staticmethod
 	def open_output(midiname):
-		return mido.open_output(midiname, False)
+		try:
+			return mido.open_output(midiname, False)
+		except:
+			return None
 
 class PadIO(QObject):
 	receivedMidi = Signal(str)

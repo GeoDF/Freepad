@@ -46,10 +46,10 @@ class FreepadWindow(QWidget, Creator):
 FreepadWindow * {
 	color: ''' + FREEPAD_TITLE_COLOR + ''';
 }
-FreepadWindow, QStatusBar, Pad #padLW {
+FreepadWindow, #statusbar, Pad #padLW {
 	background: ''' + FREEPAD_LGRADIENT + ''';
 }
-#cbName, Program #bTitle, QStatusBar {
+#cbName, Program #bTitle, #statusbar {
 	font-size: 12px; color: ''' + FREEPAD_TITLE_COLOR + ''';
 }
 QComboBox:focus, QComboBox:hover {
@@ -91,7 +91,7 @@ QComboBox::down-arrow:hover {
 QComboBox QListView {
 	selection-background-color: #8f2200; selection-color: #000022;
 }
-Pad #btnNote, QStatusBar {
+Pad #btnNote, #statusbar {
 	font-size: 12px; color: ''' + FREEPAD_NOTE_COLOR + ''';
 }
 QPushButton, QComboBox, QComboBox QListView {
@@ -118,8 +118,8 @@ QToolTip {
 	padding: 3px;
 	}
 ''')
-		self.in_symbol = '\u25B6'
-		self.out_symbol = '\u25C0'
+		self.in_symbol = '<span style="color:#882200">-\u25B6</span>'
+		self.out_symbol = '<span style="color:#882200">\u25C0-</span>'
 
 		self.showMidiMessages = True if str(self.settings.value('showMidiMessages', 'True')) == 'True'  else False
 		self.settingProgram = False
@@ -251,7 +251,7 @@ QToolTip {
 		self.vLayout.addLayout(self.hLayout)
 		# status bar
 		if self.showMidiMessages:
-			self.createObj(u'statusbar', QStatusBar())
+			self.createObj(u'statusbar', QLabel())
 			self.vLayout.addWidget(self.statusbar)
 
 		self.retranslateUi()
@@ -391,7 +391,7 @@ QToolTip {
 		else:
 			self.warning('Received midi message of unknown type ' + mtype)
 		if self.showMidiMessages:
-			self.statusbar.showMessage(self.in_symbol + ' ' + msg[0:-7]) # without "time=0"
+			self.statusbar.setText(self.in_symbol + ' ' + msg[0:-7]) # without "time=0"
 
 	def warning(self, msg, detail =''):
 		self.lblAlert.setText(msg + '.')
@@ -573,7 +573,7 @@ QToolTip {
 	def sendProgram(self, pid):
 		if self.io.isConnected:
 			msg = self.io.sendProgram(pid, self.program())
-			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
+			self.statusbar.setText(self.out_symbol + ' ' + msg)
 
 	def setProgram(self, pgm):
 		if 'program' not in self.io.pad:
@@ -645,21 +645,21 @@ QToolTip {
 			mc = self.mc.currentIndex()
 		msg = self.io.sendNoteOn(mc, note, velocity)
 		if self.showMidiMessages and msg is not None:
-			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
+			self.statusbar.setText(self.out_symbol + ' ' + msg)
 
 	def _sendNoteOff(self, mc, note, velocity):
 		if mc == 16:
 			mc = self.mc.currentIndex()
 		msg = self.io.sendNoteOff(mc, note, velocity)
 		if self.showMidiMessages and msg is not None:
-			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
+			self.statusbar.setText(self.out_symbol + ' ' + msg)
 
 	def _sendControlChanged(self, mc, cc, val):
 		if mc == 16:
 			mc = self.mc.currentIndex()
 		msg = self.io.sendControlChanged(mc, cc, val)
 		if self.showMidiMessages and msg is not None:
-			self.statusbar.showMessage(self.out_symbol + ' ' + msg)
+			self.statusbar.setText(self.out_symbol + ' ' + msg)
 
 	def valueChanged(self, value):
 		self.unselPrograms()
