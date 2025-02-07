@@ -11,7 +11,7 @@ env:
   req_file: requirements.txt
   spec_file: freepad.spec
   is_pre_release: true
-  python_version: "3.12.0 - 3.13.0"
+  python_version: "3.11.0 - 3.14.0"
 
 
 jobs:
