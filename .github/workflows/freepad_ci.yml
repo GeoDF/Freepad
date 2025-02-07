@@ -6,62 +6,62 @@ run-name: ${{ github.actor }} Freepad CI
 on: [workflow_dispatch]
 
 env:
-	req_file: requirements.txt
-	spec_file: freepad.spec
-	is_pre_release: true
-	python_version: 3.13
+  req_file: requirements.txt
+  spec_file: freepad.spec
+  is_pre_release: true
+  python_version: 3.13
 
 
 jobs:
-	Build-Freepad-Action:
-		runs-on: [ubuntu-latest, window-latest, macos-latest]
-		steps:
-			- run: echo "🎉 job triggered by a ${{ github.event_name }} event."
-			- run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
+  Build-Freepad-Action:
+    runs-on: [ubuntu-latest, window-latest, macos-latest]
+    steps:
+      - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
+      - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
 
-			- name: Install python
-				uses: actions/setup-python@v4
-				with:
-					python-version: $PYTHON_VERSION
-				run: echo "🎉 Python $PYTHON_VERSION installed."
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: $PYTHON_VERSION
+        run: echo "🎉 Python $PYTHON_VERSION installed."
 
-			- name: Upgrade pip
-				run: python -m pip install --upgrade pip
-				run: echo "🎉 Pip upgraded."
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+        run: echo "🎉 Pip upgraded."
 
-			- name: Install dependencies
-				run: python -m pip install -r $REQ_FILE
-				run: echo "🎉 Dependencies from $REQ_FILE installed."
+      - name: Install dependencies
+        run: python -m pip install -r $REQ_FILE
+        run: echo "🎉 Dependencies from $REQ_FILE installed."
 
-			- name: Install pyinstaller
-				run: python -m pip install pyinstaller
-				run: echo "🎉 PyInstaller installed."
+      - name: Install pyinstaller
+        run: python -m pip install pyinstaller
+        run: echo "🎉 PyInstaller installed."
 
-			- name: Check out code
-				uses: actions/checkout@v4
-			- run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Check out code
+        uses: actions/checkout@v4
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
 
-			- name: Create executable
-				run: pyinstaller --clean $SPEC_FILE
-				run: echo "🎉 PyInstaller succeeded."
+      - name: Create executable
+        run: pyinstaller --clean $SPEC_FILE
+        run: echo "🎉 PyInstaller succeeded."
 
-			- name: Upload artifact
-				uses: actions/upload-artifact@v4
-				with:
-					name: 'freepad_${{ runner.os }}'
-					path: './dist'
-					if-no-files-found: error
-					retention-days: 1
-					overwrite: true
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'freepad_${{ runner.os }}'
+          path: './dist'
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
 
-			- name: If executable upload success
-				if: steps.artifact_upload.conclusion == 'success'
-				run: echo "🎉 Artifact uploaded."
+      - name: If executable upload success
+        if: steps.artifact_upload.conclusion == 'success'
+        run: echo "🎉 Artifact uploaded."
 
-			- name: If executable upload fails
-				if: steps.artifact_upload.conclusion == 'failure'
-				run: echo "🎉 Artifact upload failed."
+      - name: If executable upload fails
+        if: steps.artifact_upload.conclusion == 'failure'
+        run: echo "🎉 Artifact upload failed."
 
-			- run: echo "🍏 Job's status is ${{ job.status }}."
+      - run: echo "🍏 Job's status is ${{ job.status }}."
 
-			
+      
