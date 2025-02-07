@@ -25,7 +25,7 @@ jobs:
       - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
 
       - name: Install alsa deps if on ubuntu-latest
-        if: ${{ runner.os }} == 'ubuntu-latest'
+        if: ${{ matrix.os }} == 'ubuntu-latest'
         run: sudo apt-get install libasound2-dev
       
       - name: Install python
