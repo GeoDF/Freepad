@@ -1,7 +1,11 @@
 name: Freepad CI
 run-name: ${{ github.actor }} Freepad CI
 
-on: [workflow_dispatch]
+on: 
+  workflow_dispatch:
+  push:
+    tags:
+      - '*'
 
 env:
   req_file: requirements.txt
