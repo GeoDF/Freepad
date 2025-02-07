@@ -24,6 +24,10 @@ jobs:
       - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
 
+      - id: get_version
+        name: Get version
+        uses: jannemattila/get-version-from-tag@v4
+
       - name: Install alsa deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -70,7 +74,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 'freepad_${{ runner.os }}'
+          name: 'freepad-${{ steps.get_version.outputs.version }}_${{ runner.os }}-${{ matrix.version }}'
           path: './dist'
           if-no-files-found: error
           retention-days: 1
