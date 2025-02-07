@@ -28,7 +28,8 @@ jobs:
         uses: actions/setup-python@v4
         id: install_python
         with:
-          python-version: $PYTHON_VERSION
+          python-version: ${{ env.python_version}}
+          check-latest: true
           
       - run: echo "🎉 Python ${{ steps.install_python.outputs.python-version }} installed."
 
@@ -37,8 +38,8 @@ jobs:
       - run: echo "🎉 Pip upgraded."
 
       - name: Install dependencies
-        run: python -m pip install -r $REQ_FILE
-      - run: echo "🎉 Dependencies from $REQ_FILE installed."
+        run: python -m pip install -r ${{ env.req_file}}
+      - run: echo "🎉 Dependencies from ${{ env.req_file }} installed."
 
       - name: Install pyinstaller
         run: python -m pip install pyinstaller
@@ -50,7 +51,7 @@ jobs:
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
 
       - name: Create executable
-        run: pyinstaller --clean $SPEC_FILE
+        run: pyinstaller --clean ${{ env.spec_file}}
       - run: echo "🎉 PyInstaller succeeded."
 
       - name: Upload artifact
