@@ -27,8 +27,8 @@ jobs:
       - name: Get version
         id: get_version        
         run: |
-          tag=$(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')
-          echo "tag_name=$tag"  >> GITHUB_OUTPUT
+          tag="$(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')"
+          echo "tag_name=$tag" >> GITHUB_OUTPUT
 
       - name: Install alsa deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
