@@ -12,7 +12,7 @@ env:
 
 jobs:
   Build-Freepad-Action:
-    runs-on: [ubuntu-latest, window-latest, macos-latest]
+    runs-on: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
