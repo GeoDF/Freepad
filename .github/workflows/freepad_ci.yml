@@ -6,10 +6,10 @@ run-name: ${{ github.actor }} Freepad CI
 on: [workflow_dispatch]
 
 env:
-	SPEC_FILE: freepad.spec
-	IS_PRE_RELEASE: true
-	PYTHON_VERSION: 3.13
-	REQ_FILE: requirements.txt
+	spec_file: freepad.spec
+	is_pre_release: true
+	python_version: 3.13
+	req_file: requirements.txt
 
 jobs:
 	Build-Freepad-Action:
