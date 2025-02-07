@@ -109,7 +109,7 @@ jobs:
           TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
         uses: softprops/action-gh-release@v2
         with:
-          name: 'freepad-${{ steps.get_version.outputs.tag_name }}_${{ runner.os }}-${{ matrix.version }}'
+          name: 'freepad-${{ steps.get_version.outputs.tag_name }}_${{ matrix.os }}-${{ matrix.version }}'
           repository: ${{ github.repository }}/releases/${{ matrix.os }}-${{ matrix.version }}
           body: first pre-release
           tag_name: $TAG_NAME
