@@ -3,16 +3,16 @@ author: '@GeodF'
 description: Action to package Frrepad into executables
 run-name: ${{ github.actor }} Freepad CI
 branding:
-	icon: 'package'
-	color: 'red'
+	icon: package
+	color: red
 
 on: [workflow_dispatch]
 
 env:
-	SPEC_FILE: 'freepad.spec'
+	SPEC_FILE: freepad.spec
 	IS_PRE_RELEASE: true
-	PYTHON_VERSION: '3.13'
-	REQ_FILE: 'requirements.txt'
+	PYTHON_VERSION: 3.13
+	REQ_FILE: requirements.txt
 
 jobs:
 	Build-Freepad-Action:
@@ -40,7 +40,7 @@ jobs:
 				run: echo "🎉 PyInstaller installed."
 
 			- name: Check out code
-				uses:  actions/checkout@v4
+				uses: actions/checkout@v4
 			- run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
 
 			- name: Create executable
