@@ -92,16 +92,20 @@ jobs:
 #        if: steps.artifact_upload.conclusion == 'failure'
 #        run: echo "🎉 Artifact upload failed."
 
-      - name: 'freepad-${{ steps.get_version.outputs.version }}_${{ runner.os }}-${{ matrix.version }}'
+      - name: Release
+        id: release
         uses: softprops/action-gh-release@v2
         with:
+          name: 'freepad-${{ steps.get_version.outputs.version }}_${{ runner.os }}-${{ matrix.version }}'
+          repository: ${{ github.repository }}/releases/${{ matrix.os }}-${{ matrix.version }}
           body: first pre-release
-          pre-release: true
+          tag_name: ${{ steps.get_version.outputs.version }}
+          prerelease: true
           files: |
             LICENSE
             README.md
             ./dist/Freepad/*
 
-      - run: echo "🍏 Job's status is ${{ job.status }}."
+      - run: echo "🍏 Job's status is ${{ job.status }}. Release uploaded to $${{ steps.release.outputs.upload_url }}"
 
 
