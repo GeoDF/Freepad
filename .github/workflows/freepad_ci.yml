@@ -53,9 +53,6 @@ jobs:
           python-version: ${{ env.python_version}}
           check-latest: true
 
-      - id: get_os_infos
-        run 
-
       - run: echo "🎉 Python ${{ steps.install_python.outputs.python-version }} installed."
 
       - name: Upgrade pip
