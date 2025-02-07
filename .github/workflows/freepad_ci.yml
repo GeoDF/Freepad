@@ -24,7 +24,8 @@ jobs:
       - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
 
-      - name: Install alsa deps
+      - name: Install alsa deps if on ubuntu-latest
+        if: ${{ runner.os }} == 'ubuntu-latest'
         run: sudo apt-get install libasound2-dev
       
       - name: Install python
