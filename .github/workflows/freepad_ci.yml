@@ -37,10 +37,6 @@ jobs:
         run: python -m pip install --upgrade pip
       - run: echo "🎉 Pip upgraded."
 
-      - name: Install dependencies
-        run: python -m pip install -r ${{ env.req_file}}
-      - run: echo "🎉 Dependencies from ${{ env.req_file }} installed."
-
       - name: Install pyinstaller
         run: python -m pip install pyinstaller
       - run: echo "🎉 PyInstaller installed."
@@ -52,6 +48,10 @@ jobs:
 
       - name: List files checkouted
         run:  ls ${{ github.workspace }}
+
+      - name: Install dependencies
+        run: python -m pip install -r ${{ env.req_file}}
+      - run: echo "🎉 Dependencies from ${{ env.req_file }} installed."
 
       - name: Create executable
         run: pyinstaller --clean  ./${{ env.spec_file}}
