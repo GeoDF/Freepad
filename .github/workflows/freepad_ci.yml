@@ -3,73 +3,110 @@ run-name: ${{ github.actor }} Freepad CI
 
 on: 
   workflow_dispatch:
+
   push:
     tags:
       - '*'
 
+permissions:
+  contents: write
+
 env:
   req_file: requirements.txt
   spec_file: freepad.spec
+  include_files: "LICENSE README.md"
   is_pre_release: true
   python_version: "3.11.0 - 3.14.0"
 
-
+defaults:
+  run:
+    shell: bash
+    
 jobs:
   Build-Freepad-Action:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest]
     runs-on: ${{ matrix.os }}
+
     steps:
       - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
-
+      
+      - name: Make ImageOS env var available outside of shells
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        run: |
+          echo ImageOS=$ImageOS>> $GITHUB_ENV
+  
+      - name: Install some deps if on ubuntu-latest
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get install libasound2-dev
+          sudo apt-get install libjack-dev
+          sudo apt-get install libxkbcommon-x11-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xkb-dev # for pyinstaller / QT6
+      
       - name: Install python
         uses: actions/setup-python@v4
         id: install_python
         with:
-          python-version: $PYTHON_VERSION
-          
+          python-version: ${{ env.python_version}}
+          check-latest: true
+
       - run: echo "🎉 Python ${{ steps.install_python.outputs.python-version }} installed."
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
-      - run: echo "🎉 Pip upgraded."
-
-      - name: Install dependencies
-        run: python -m pip install -r $REQ_FILE
-      - run: echo "🎉 Dependencies from $REQ_FILE installed."
+      - name: install Pillow on Windows
+        if: matrix.os == 'windows-latest'
+        run: python -m pip install pillow
 
       - name: Install pyinstaller
         run: python -m pip install pyinstaller
-      - run: echo "🎉 PyInstaller installed."
 
       - name: Check out code
         uses: actions/checkout@v4
 
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Get latest tag      
+        id: checkout
+        run: | 
+            git fetch --tags > /dev/null 2>&1 
+            latest=$(git describe --tags `git rev-list --tags --max-count=1`)
+            echo "latest_tag=$latest" >> "$GITHUB_OUTPUT"
+            echo "💡 The ${{ github.repository }} repository has been cloned to the runner. Last tag is $latest"
+
+      - name: Install dependencies
+        run: python -m pip install -r ${{env.req_file}}
 
       - name: Create executable
-        run: pyinstaller --clean $SPEC_FILE
-      - run: echo "🎉 PyInstaller succeeded."
+        id: pyinstaller
+        run: |
+          pyinstaller --clean ${{ env.spec_file }}
+          echo "executable=$(ls dist)" >> "$GITHUB_OUTPUT"
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Compress files
+        id: zip
+        env:
+          TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
+          EXE: "${{ steps.pyinstaller.outputs.executable }}"
+          DEST: "freepad-${{ steps.checkout.outputs.latest_tag }}_${{env.ImageOS}}.tar.bz2"
+        run: |
+          echo "$(tar -cjf ${DEST} ${{env.include_files}} -C dist ${{env.EXE}})"
+          echo "zipfile=$DEST" >> "$GITHUB_OUTPUT"        
+        
+      - name: Release
+        env:
+          TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
+        id: release
+        uses: softprops/action-gh-release@v2
         with:
-          name: 'freepad_${{ runner.os }}'
-          path: './dist'
-          if-no-files-found: error
-          retention-days: 1
-          overwrite: true
-
-      - name: If executable upload success
-        if: steps.artifact_upload.conclusion == 'success'
-        run: echo "🎉 Artifact uploaded."
-
-      - name: If executable upload fails
-        if: steps.artifact_upload.conclusion == 'failure'
-        run: echo "🎉 Artifact upload failed."
+          name: "freepad-${{env.TAG_NAME}}_${{env.ImageOS}}"
+          #repository: ${{ github.repository }}/releases/${ImageOS}
+          body: First pre-release
+          tag_name: ${{env.TAG_NAME}}
+          prerelease: true
+          fail_on_unmatched_files: true
+          append_body: true
+          files: ${{ steps.zip.outputs.zipfile }}
 
       - run: echo "🍏 Job's status is ${{ job.status }}."
 
-      
+

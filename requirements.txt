@@ -1,4 +1,4 @@
 PyQT6
 qtpy
 mido
-rtmidi
+python-rtmidi
