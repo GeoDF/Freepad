@@ -32,6 +32,9 @@ jobs:
           tag="$(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')"
           echo "tag_name=$tag" >> GITHUB_OUTPUT
 
+      - name: Check version
+        run: echo "tag_name = ${{ steps.get_version.outputs.tag_name }}"
+
       - name: Install alsa deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -100,7 +103,7 @@ jobs:
         id: release
         uses: softprops/action-gh-release@v2
         with:
-          name: 'freepad-${{ steps.get_version.outputs.version }}_${{ runner.os }}-${{ matrix.version }}'
+          name: 'freepad-${{ steps.get_version.outputs.tag_name }}_${{ runner.os }}-${{ matrix.version }}'
           #repository: ${{ github.repository }}/releases/${{ matrix.os }}-${{ matrix.version }}
           body: first pre-release
           tag_name: "${{ steps.get_version.outputs.tag_name }}"
