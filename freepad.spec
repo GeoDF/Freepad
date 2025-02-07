@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['pad\\__main__.py'],
+    ['pad/__main__.py'],
     pathex=[],
     binaries=[],
     datas=[
@@ -40,5 +40,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='pad\\ui\\img\\djembe.png'
+    icon='pad/ui/img/djembe.png'
 )
