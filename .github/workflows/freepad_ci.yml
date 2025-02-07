@@ -20,12 +20,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+
     steps:
       - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
 
       - name: Get version
-        id: get_version        
+        id: get_version
+        shell: bash
         run: |
           tag="$(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')"
           echo "tag_name=$tag" >> GITHUB_OUTPUT
