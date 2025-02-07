@@ -35,6 +35,7 @@ jobs:
           echo "tag_name=$(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')" >> "$GITHUB_OUTPUT"
 
       - name: Check version
+        shell: bash
         env:
           TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
         run: echo "tag_name = $TAG_NAME"
@@ -110,7 +111,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: 'freepad-${{ steps.get_version.outputs.tag_name }}_${{ matrix.os }}-${{ matrix.version }}'
-          repository: ${{ github.repository }}/releases/${{ matrix.os }}-${{ matrix.version }}
+          #repository: ${{ github.repository }}/releases/${{ matrix.os }}-${{ matrix.version }}
           body: first pre-release
           tag_name: $TAG_NAME
           prerelease: true
