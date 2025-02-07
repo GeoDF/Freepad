@@ -1,6 +1,4 @@
 name: Freepad CI
-author: '@GeodF'
-description: Action to package Frrepad into executables
 run-name: ${{ github.actor }} Freepad CI
 
 on: [workflow_dispatch]
@@ -23,19 +21,19 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: $PYTHON_VERSION
-        run: echo "🎉 Python $PYTHON_VERSION installed."
+      - run: echo "🎉 Python $PYTHON_VERSION installed."
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
-        run: echo "🎉 Pip upgraded."
+      - run: echo "🎉 Pip upgraded."
 
       - name: Install dependencies
         run: python -m pip install -r $REQ_FILE
-        run: echo "🎉 Dependencies from $REQ_FILE installed."
+      - run: echo "🎉 Dependencies from $REQ_FILE installed."
 
       - name: Install pyinstaller
         run: python -m pip install pyinstaller
-        run: echo "🎉 PyInstaller installed."
+      - run: echo "🎉 PyInstaller installed."
 
       - name: Check out code
         uses: actions/checkout@v4
@@ -43,7 +41,7 @@ jobs:
 
       - name: Create executable
         run: pyinstaller --clean $SPEC_FILE
-        run: echo "🎉 PyInstaller succeeded."
+      - run: echo "🎉 PyInstaller succeeded."
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
