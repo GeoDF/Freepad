@@ -50,8 +50,11 @@ jobs:
 
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
 
+      - name: List files checkouted
+        run:  ls ${{ github.workspace }}
+
       - name: Create executable
-        run: pyinstaller --clean ${{ env.spec_file}}
+        run: pyinstaller --clean  ./${{ env.spec_file}}
       - run: echo "🎉 PyInstaller succeeded."
 
       - name: Upload artifact
