@@ -2,9 +2,6 @@ name: Freepad CI
 author: '@GeodF'
 description: Action to package Frrepad into executables
 run-name: ${{ github.actor }} Freepad CI
-branding:
-	icon: package
-	color: red
 
 on: [workflow_dispatch]
 
