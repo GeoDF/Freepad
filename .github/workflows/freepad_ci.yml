@@ -24,9 +24,11 @@ jobs:
       - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
 
-      - id: get_version
-        name: Get version
-        run: echo "tag_name = $(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')"  >> GITHUB_OUTPUT
+      - name: Get version
+        id: get_version        
+        run: |
+          tag = $(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')
+          echo "tag_name = ${{ tag }}"  >> GITHUB_OUTPUT
 
       - name: Install alsa deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
@@ -99,8 +101,7 @@ jobs:
           name: 'freepad-${{ steps.get_version.outputs.version }}_${{ runner.os }}-${{ matrix.version }}'
           #repository: ${{ github.repository }}/releases/${{ matrix.os }}-${{ matrix.version }}
           body: first pre-release
-          #tag_name: ${{ steps.get_version.outputs.tag_name }}
-          tag_name: 0.9.7
+          tag_name: ${{ steps.get_version.outputs.tag_name }}
           prerelease: true
           files: |
             LICENSE
