@@ -52,7 +52,10 @@ jobs:
         with:
           python-version: ${{ env.python_version}}
           check-latest: true
-          
+
+      - id: get_os_infos
+        run 
+
       - run: echo "🎉 Python ${{ steps.install_python.outputs.python-version }} installed."
 
       - name: Upgrade pip
@@ -84,36 +87,16 @@ jobs:
         run: |
           pyinstaller --clean ./${{ env.spec_file }}
 
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v4
-#        id: artifact-upload
-#        with:
-#          name: 'freepad-${{ steps.get_version.outputs.version }}_${{ runner.os }}-${{ matrix.version }}'
-#          path: './dist'
-#          if-no-files-found: error
-#          retention-days: 1
-#          overwrite: true
-
-#      - name: If executable upload success
-#        if: steps.artifact_upload.conclusion == 'success'
-#        run: |
-#          echo "🎉 Artifact uploaded."
-#          echo ${{ steps.artifact.artifact-digest }} > sha256.txt
-
-#      - name: If executable upload fails
-#        if: steps.artifact_upload.conclusion == 'failure'
-#        run: echo "🎉 Artifact upload failed."
-
       - name: Release
         id: release
         env:
           TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
         uses: softprops/action-gh-release@v2
         with:
-          name: 'freepad-${{ steps.get_version.outputs.tag_name }}_${{ matrix.os }}-${{ matrix.version }}'
-          #repository: ${{ github.repository }}/releases/${{ matrix.os }}-${{ matrix.version }}
+          name: 'freepad-${{ steps.get_version.outputs.tag_name }}_${ ImageOS }-${ ImageVersion }'
+          repository: ${{ github.repository }}/releases/${ ImageOS }-${ ImageVersion }
           body: first pre-release
-          tag_name: $TAG_NAME
+          tag_name: "${TAG_NAME}"
           prerelease: true
           files: |
             LICENSE
