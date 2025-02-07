@@ -26,7 +26,7 @@ jobs:
 
       - id: get_version
         name: Get version
-        uses: jannemattila/get-version-from-tag@v4
+        run: echo "version = $(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')"  >> GITHUB_OUTPUT
 
       - name: Install alsa deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
