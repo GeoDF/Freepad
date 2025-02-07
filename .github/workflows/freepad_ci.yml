@@ -103,7 +103,7 @@ jobs:
           name: 'freepad-${{ steps.get_version.outputs.version }}_${{ runner.os }}-${{ matrix.version }}'
           #repository: ${{ github.repository }}/releases/${{ matrix.os }}-${{ matrix.version }}
           body: first pre-release
-          tag_name: ${{ steps.get_version.outputs.tag_name }}
+          tag_name: "${{ steps.get_version.outputs.tag_name }}"
           prerelease: true
           files: |
             LICENSE
