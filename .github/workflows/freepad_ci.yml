@@ -14,7 +14,7 @@ permissions:
 env:
   req_file: requirements.txt
   spec_file: freepad.spec
-  include_files: LICENSE README.md
+  include_files: "LICENSE README.md"
   is_pre_release: true
   python_version: "3.11.0 - 3.14.0"
 
@@ -90,7 +90,7 @@ jobs:
         env:
           TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
           EXE: "${{ steps.pyinstaller.outputs.executable }}"
-          DEST: "freepad${{ steps.checkout.outputs.latest_tag }}_${{env.ImageOS}}.zip"
+          DEST: "freepad-${{ steps.checkout.outputs.latest_tag }}_${{env.ImageOS}}.zip"
         run: |
           echo "zip $DEST ${{env.include_files}} dist/${{env.EXE}}"
           echo "zipfile=$DEST" >> "$GITHUB_OUTPUT"
