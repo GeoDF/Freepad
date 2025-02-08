@@ -46,9 +46,6 @@ jobs:
 
       - run: echo "🎉 Python ${{ steps.install_python.outputs.python-version }} installed."
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
-
       - name: install Pillow on Windows
         if: matrix.os == 'windows-latest'
         run: python -m pip install pillow
@@ -79,6 +76,7 @@ jobs:
           pyinstaller --clean ./${{ env.spec_file }}
           exe=$(ls ./dist)
           echo "executable=$exe" >> "$GITHUB_OUTPUT"
+          ls ${{ github.workspace }}/dist
 
       - name: Release
         id: release
@@ -89,12 +87,12 @@ jobs:
           name: "freepad-${TAG_NAME}_${ImageOS}"
           #repository: ${{ github.repository }}/releases/${ImageOS}
           body: First pre-release
-          tag_name: $TAG_NAME
+          tag_name: "$TAG_NAME"
           prerelease: true
           files: |
             LICENSE
             README.md
-            ./dist/${{ steps.pyinstaller.executable }}
+            ${{ github.workspace }}/dist/${{ steps.pyinstaller.executable }}
 
       - run: echo "🍏 Job's status is ${{ job.status }}. Release uploaded to ${{ steps.release.outputs.upload_url }}"
 
