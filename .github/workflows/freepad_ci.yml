@@ -76,13 +76,14 @@ jobs:
         run:  ls ${{ github.workspace }}
 
       - name: Install dependencies
-        run: python -m pip install -r ${{ env.req_file}}
+        run: python -m pip install -r ${{env.req_file}}
       - run: echo "🎉 Dependencies from ${{ env.req_file }} installed."
 
       - name: Create executable
-        id: create_executable
+        id: pyinstaller
         run: |
           pyinstaller --clean ./${{ env.spec_file }}
+          echo "executable=$(ls ./dist)" >> "$GITHUB_OUTPUT"
 
       - name: Release
         id: release
@@ -90,15 +91,15 @@ jobs:
           TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
         uses: softprops/action-gh-release@v2
         with:
-          name: 'freepad-${{ steps.get_version.outputs.tag_name }}_${ ImageOS }-${ ImageVersion }'
-          repository: ${{ github.repository }}/releases/${ ImageOS }-${ ImageVersion }
+          name: 'freepad-${TAG_NAME}_${ImageOS}'
+          repository: ${{ github.repository }}/releases/${ImageOS}
           body: first pre-release
-          tag_name: "${TAG_NAME}"
+          tag_name: "$TAG_NAME"
           prerelease: true
           files: |
             LICENSE
             README.md
-            ./dist/Freepad/*
+            ${{ steps.pyinstaller.executable }}
 
       - run: echo "🍏 Job's status is ${{ job.status }}. Release uploaded to ${{ steps.release.outputs.upload_url }}"
 
