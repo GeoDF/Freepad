@@ -79,7 +79,6 @@ jobs:
 
       - name: Install dependencies
         run: python -m pip install -r ${{env.req_file}}
-      - run: echo "🎉 Dependencies from ${{ env.req_file }} installed."
 
       - name: Create executable
         id: pyinstaller
@@ -93,10 +92,10 @@ jobs:
           TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
         uses: softprops/action-gh-release@v2
         with:
-          name: freepad-${TAG_NAME}_${ImageOS}
+          name: "freepad-${TAG_NAME}_${ImageOS}"
           #repository: ${{ github.repository }}/releases/${ImageOS}
           body: First pre-release
-          tag_name: "$TAG_NAME"
+          tag_name: "${TAG_NAME}"
           prerelease: true
           files: |
             LICENSE
