@@ -103,6 +103,8 @@ jobs:
           body: First pre-release
           tag_name: ${{env.TAG_NAME}}
           prerelease: true
+          fail_on_unmatched_files: true
+          append_body: true
           files: ${{ steps.zip.outputs.zipfile }}
 
       - run: echo "🍏 Job's status is ${{ job.status }}."
