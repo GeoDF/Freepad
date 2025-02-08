@@ -73,7 +73,7 @@ jobs:
       - name: Create executable
         id: pyinstaller
         run: |
-          pyinstaller --clean ./${{ env.spec_file }}
+          pyinstaller --clean ${{ env.spec_file }}
           exe=$(ls dist)
           echo "executable=$exe" >> "$GITHUB_OUTPUT"
           echo "ls dist"
@@ -82,10 +82,10 @@ jobs:
         id: release
         env:
           TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
-          EXE: "${{ steps.pyinstaller.executable }}"
+          EXE: "${{ steps.pyinstaller.outputs.executable }}"
         uses: softprops/action-gh-release@v2
         with:
-          name: "freepad-${{TAG_NAME}}_${{ImageOS}}"
+          name: "freepad-${{env.TAG_NAME}}_${{ImageOS}}"
           #repository: ${{ github.repository }}/releases/${ImageOS}
           body: First pre-release
           tag_name: "$TAG_NAME"
