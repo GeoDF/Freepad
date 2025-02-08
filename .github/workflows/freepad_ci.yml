@@ -92,7 +92,7 @@ jobs:
           EXE: "${{ steps.pyinstaller.outputs.executable }}"
           DEST: "freepad-${{ steps.checkout.outputs.latest_tag }}_${{env.ImageOS}}.zip"
         run: |
-          echo "zip $DEST ${{env.include_files}} dist/${{env.EXE}}"
+          echo "$(zip $DEST ${{env.include_files}} dist/${{env.EXE}})"
           echo "zipfile=$DEST" >> "$GITHUB_OUTPUT"
         
       - name: Release
