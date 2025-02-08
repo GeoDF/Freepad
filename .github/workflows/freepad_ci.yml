@@ -46,7 +46,7 @@ jobs:
         run: |
           sudo apt-get install libasound2-dev
           sudo apt-get install libjack-dev
-          sudo apt-get install libxkb-common-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xkb-dev # for pyinstaller / QT6
+          sudo apt-get install libxkb-common-x11-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xkb-dev # for pyinstaller / QT6
       
       - name: Install python
         uses: actions/setup-python@v4
