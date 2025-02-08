@@ -85,7 +85,7 @@ jobs:
           EXE: "${{ steps.pyinstaller.outputs.executable }}"
         uses: softprops/action-gh-release@v2
         with:
-          name: "freepad-${{env.TAG_NAME}}_${{ImageOS}}"
+          name: "freepad-${{env.TAG_NAME}}_$ImageOS"
           #repository: ${{ github.repository }}/releases/${ImageOS}
           body: First pre-release
           tag_name: "$TAG_NAME"
