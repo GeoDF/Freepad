@@ -105,6 +105,6 @@ jobs:
           prerelease: true
           files: ${{ steps.zip.outputs.zipfile }}
 
-      - run: echo "🍏 Job's status is ${{ job.status }}. Release uploaded to ${{ steps.release.outputs.upload_url }}"
+      - run: echo "🍏 Job's status is ${{ job.status }}."
 
 
