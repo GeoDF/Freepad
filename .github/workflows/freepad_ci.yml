@@ -84,7 +84,7 @@ jobs:
         id: pyinstaller
         run: |
           pyinstaller --clean ./${{ env.spec_file }}
-          echo "executable=$(ls ./dist)" >> "$GITHUB_OUTPUT"
+          echo "executable=$(ls ${{ github.workspace }}/dist)" >> "$GITHUB_OUTPUT"
 
       - name: Release
         id: release
