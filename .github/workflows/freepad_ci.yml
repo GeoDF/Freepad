@@ -40,11 +40,12 @@ jobs:
           TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
         run: echo "tag_name = $TAG_NAME"
 
-      - name: Install alsa deps if on ubuntu-latest
+      - name: Install some if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get install libasound2-dev
           sudo apt-get install libjack-dev
+          sudo apt-get libicccm4 # for QT6
       
       - name: Install python
         uses: actions/setup-python@v4
