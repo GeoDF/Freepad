@@ -40,12 +40,12 @@ jobs:
           TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
         run: echo "tag_name = $TAG_NAME"
 
-      - name: Install some if on ubuntu-latest
+      - name: Install some deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get install libasound2-dev
           sudo apt-get install libjack-dev
-          sudo apt-get install libxcb-icccm4-dev # for QT6
+          sudo apt-get install libxcb-common-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xkb-dev # for pyinstaller / QT6
       
       - name: Install python
         uses: actions/setup-python@v4
