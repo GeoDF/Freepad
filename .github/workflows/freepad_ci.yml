@@ -33,7 +33,7 @@ jobs:
       - name: Install some deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get install libasound2-dev
+          sudo apt-get install libasound2-dev tree
           sudo apt-get install libjack-dev
           sudo apt-get install libxkbcommon-x11-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xkb-dev # for pyinstaller / QT6
       
@@ -59,7 +59,7 @@ jobs:
       - name: Get latest tag      
         id: checkout
         run: | 
-            git fetch --tags > /dev/null
+            git fetch --tags > /dev/null 2>&1 
             latest=$(git describe --tags `git rev-list --tags --max-count=1`)
             echo "latest_tag=$latest" >> "$GITHUB_OUTPUT"
             echo "💡 The ${{ github.repository }} repository has been cloned to the runner. Last tag is $latest"
@@ -76,24 +76,25 @@ jobs:
           pyinstaller --clean ${{ env.spec_file }}
           exe=$(ls dist)
           echo "executable=$exe" >> "$GITHUB_OUTPUT"
-          echo "ls dist"
+          echo "tree"
 
       - name: Release
         id: release
         env:
           TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
           EXE: "${{ steps.pyinstaller.outputs.executable }}"
+          OS: "$ImageOS"
         uses: softprops/action-gh-release@v2
         with:
-          name: "freepad-${{env.TAG_NAME}}_$ImageOS"
+          name: "freepad-${{env.TAG_NAME}}_${{env.OS}}"
           #repository: ${{ github.repository }}/releases/${ImageOS}
           body: First pre-release
-          tag_name: "$TAG_NAME"
+          tag_name: ${{env.TAG_NAME}}
           prerelease: true
           files: |
             LICENSE
             README.md
-            "dist/$EXE"
+            dist/${{env.EXE}}
 
       - run: echo "🍏 Job's status is ${{ job.status }}. Release uploaded to ${{ steps.release.outputs.upload_url }}"
 
