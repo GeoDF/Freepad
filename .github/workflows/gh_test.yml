@@ -2,7 +2,11 @@ name: GitHub Actions Demo
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on: 
   workflow_dispatch:
-    tags:
+    inputs:
+      tag:
+        description: The tag to publish
+        required: true
+        type: string
     
       
 jobs:
