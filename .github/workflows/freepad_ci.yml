@@ -45,7 +45,7 @@ jobs:
         run: |
           sudo apt-get install libasound2-dev
           sudo apt-get install libjack-dev
-          sudo apt-get install libicccm4-dev # for QT6
+          sudo apt-get install libxcb-icccm4-dev # for QT6
       
       - name: Install python
         uses: actions/setup-python@v4
