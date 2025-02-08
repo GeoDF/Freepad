@@ -97,7 +97,7 @@ jobs:
         id: release
         uses: softprops/action-gh-release@v2
         with:
-          name: "freepad-${{env.TAG_NAME}}_${{env.ImageOS}}"
+          name: "freepad-${{env.TAG_NAME}}"
           body: First pre-release
           tag_name: ${{env.TAG_NAME}}
           prerelease: true
