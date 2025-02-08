@@ -3,6 +3,7 @@ run-name: ${{ github.actor }} Freepad CI
 
 on: 
   workflow_dispatch:
+
   push:
     tags:
       - '*'
@@ -29,18 +30,6 @@ jobs:
       - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
 
-      - name: Get version
-        id: get_version
-        shell: bash
-        run: |
-          echo "tag_name=$(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')" >> "$GITHUB_OUTPUT"
-
-      - name: Check version
-        shell: bash
-        env:
-          TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
-        run: echo "tag_name = $TAG_NAME"
-
       - name: Install some deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -59,7 +48,6 @@ jobs:
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
-      - run: echo "🎉 Pip upgraded."
 
       - name: install Pillow on Windows
         if: matrix.os == 'windows-latest'
@@ -67,12 +55,15 @@ jobs:
 
       - name: Install pyinstaller
         run: python -m pip install pyinstaller
-      - run: echo "🎉 PyInstaller installed."
 
       - name: Check out code
         uses: actions/checkout@v4
 
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Get latest tag      
+        id: checkout
+        run: | 
+            echo "latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)" >> "$GITHUB_OUTPUT"
+            echo "💡 The ${{ github.repository }} repository has been cloned to the runner. Last tag is ${{ steps.checkout.outputs.latest_tag }}"
 
       - name: List files checkouted
         run:  ls ${{ github.workspace }}
@@ -89,13 +80,13 @@ jobs:
       - name: Release
         id: release
         env:
-          TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
+          TAG_NAME: ${{ steps.checkout.outputs.latest_tag }}
         uses: softprops/action-gh-release@v2
         with:
           name: "freepad-${TAG_NAME}_${ImageOS}"
           #repository: ${{ github.repository }}/releases/${ImageOS}
           body: First pre-release
-          tag_name: "${TAG_NAME}"
+          tag_name: $TAG_NAME
           prerelease: true
           files: |
             LICENSE
