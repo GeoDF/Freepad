@@ -46,7 +46,7 @@ jobs:
         run: |
           sudo apt-get install libasound2-dev
           sudo apt-get install libjack-dev
-          sudo apt-get install libxcb-cursor-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xkb-dev # for pyinstaller / QT6
+          sudo apt-get install libxkb-common-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xkb-dev # for pyinstaller / QT6
       
       - name: Install python
         uses: actions/setup-python@v4
@@ -93,15 +93,15 @@ jobs:
           TAG_NAME: ${{ steps.get_version.outputs.tag_name }}
         uses: softprops/action-gh-release@v2
         with:
-          name: 'freepad-${TAG_NAME}_${ImageOS}'
-          repository: ${{ github.repository }}/releases/${ImageOS}
-          body: first pre-release
+          name: freepad-${TAG_NAME}_${ImageOS}
+          #repository: ${{ github.repository }}/releases/${ImageOS}
+          body: First pre-release
           tag_name: "$TAG_NAME"
           prerelease: true
           files: |
             LICENSE
             README.md
-            ${{ steps.pyinstaller.executable }}
+            ./dist/${{ steps.pyinstaller.executable }}
 
       - run: echo "🍏 Job's status is ${{ job.status }}. Release uploaded to ${{ steps.release.outputs.upload_url }}"
 
