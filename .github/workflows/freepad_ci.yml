@@ -76,7 +76,7 @@ jobs:
           pyinstaller --clean ${{ env.spec_file }}
           exe=$(ls dist)
           echo "executable=$exe" >> "$GITHUB_OUTPUT"
-          echo "tree"
+          echo "$(tree)"
 
       - name: Release
         id: release
