@@ -33,7 +33,7 @@ jobs:
       - name: Install some deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get install libasound2-dev tree
+          sudo apt-get install libasound2-dev
           sudo apt-get install libjack-dev
           sudo apt-get install libxkbcommon-x11-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xkb-dev # for pyinstaller / QT6
       
@@ -74,9 +74,7 @@ jobs:
         id: pyinstaller
         run: |
           pyinstaller --clean ${{ env.spec_file }}
-          exe=$(ls dist)
-          echo "executable=$exe" >> "$GITHUB_OUTPUT"
-          echo "$(tree)"
+          echo "executable=$(ls dist)" >> "$GITHUB_OUTPUT"
 
       - name: Release
         id: release
