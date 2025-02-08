@@ -14,10 +14,14 @@ permissions:
 env:
   req_file: requirements.txt
   spec_file: freepad.spec
+  include_files: LICENSE README.md
   is_pre_release: true
   python_version: "3.11.0 - 3.14.0"
 
-
+defaults:
+  run:
+    shell: bash
+    
 jobs:
   Build-Freepad-Action:
     strategy:
@@ -32,7 +36,6 @@ jobs:
       
       - name: Make ImageOS env var available outside of shells
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        shell: bash
         run: |
           echo ImageOS=$ImageOS>> $GITHUB_ENV
   
@@ -81,12 +84,21 @@ jobs:
         run: |
           pyinstaller --clean ${{ env.spec_file }}
           echo "executable=$(ls dist)" >> "$GITHUB_OUTPUT"
-        
-      - name: Release
-        id: release
+
+      - name: Zip files
+        id: zip
         env:
           TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
           EXE: "${{ steps.pyinstaller.outputs.executable }}"
+          DEST: "freepad-${{env.TAG_NAME}}_${{env.ImageOS}}.zip"
+        run: |
+          echo "zip $DEST ${{env.include_files}} dist/${{env.EXE}}"
+          echo "zipfile=$DEST" >> "$GITHUB_OUTPUT"
+        
+      - name: Release
+        env:
+          TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
+        id: release
         uses: softprops/action-gh-release@v2
         with:
           name: "freepad-${{env.TAG_NAME}}_${{env.ImageOS}}"
@@ -94,10 +106,7 @@ jobs:
           body: First pre-release
           tag_name: ${{env.TAG_NAME}}
           prerelease: true
-          files: |
-            LICENSE
-            README.md
-            dist/${{env.EXE}}
+          files: ${{ steps.zip.outputs.zipfile }}
 
       - run: echo "🍏 Job's status is ${{ job.status }}. Release uploaded to ${{ steps.release.outputs.upload_url }}"
 
