@@ -2,14 +2,14 @@
 
 
 a = Analysis(
-    ['pad/__main__.py'],
+    ['__main__.py'],
     pathex=[],
     binaries=[],
     datas=[
-        ('pad/pads', 'pads'),
-        ('pad/help', 'help'),
-        ('pad/midi', 'midi'),
-        ('pad/ui/img', 'ui/img')
+        ('pads', 'pads'),
+        ('help', 'help'),
+        ('midi', 'midi'),
+        ('ui/img', 'ui/img')
     ],
     hiddenimports=[],
     hookspath=[],
@@ -24,21 +24,28 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='Freepad',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='pad/ui/img/djembe.png'
+    contents_directory='.',
+    icon='ui/img/djembe.png'
+)
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='.',
 )

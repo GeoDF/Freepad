@@ -21,12 +21,13 @@ env:
 defaults:
   run:
     shell: bash
-    
+
 jobs:
   Build-Freepad-Action:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+   os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -64,7 +65,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Get latest tag      
+      - name: Get latest tag
         id: checkout
         run: | 
             git fetch --tags > /dev/null 2>&1 
@@ -78,8 +79,9 @@ jobs:
       - name: Create executable
         id: pyinstaller
         run: |
+          cd pad
           pyinstaller --clean ${{ env.spec_file }}
-          echo "executable=$(ls dist)" >> "$GITHUB_OUTPUT"
+          cd ..
 
       - name: Compress files
         id: zip
@@ -88,8 +90,8 @@ jobs:
           EXE: "${{ steps.pyinstaller.outputs.executable }}"
           DEST: "freepad-${{ steps.checkout.outputs.latest_tag }}_${{env.ImageOS}}.tar.bz2"
         run: |
-          echo "$(tar -cjf ${DEST} ${{env.include_files}} -C dist ${{env.EXE}})"
-          echo "zipfile=$DEST" >> "$GITHUB_OUTPUT"        
+          echo "$(tar -cjf ${DEST} ${{env.include_files}} -C pad/dist *)"
+          echo "zipfile=$DEST" >> "$GITHUB_OUTPUT"
         
       - name: Release
         env:
