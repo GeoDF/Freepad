@@ -24,7 +24,7 @@ jobs:
   Build-Freepad-Action:
     strategy:
       matrix:
-        os: [windows-2025]
+        os: [ubuntu-22.04-arm]
     runs-on: ${{ matrix.os }}
 
     steps:
