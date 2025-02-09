@@ -90,7 +90,7 @@ jobs:
         id: zip
         env:
           TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
-          DEST: "freepad-${{ steps.checkout.outputs.latest_tag }}_${{env.ImageOS}}.tar.bz2"
+          DEST: "freepad-${{ steps.checkout.outputs.latest_tag }}_${{ runner.os }}-${{ runner.arch }}_${{env.ImageOS}}.tar.bz2"
         run: |
           set -e
           echo "$(tar -cjf ${DEST} ${{env.include_files}} -C pad/dist/collected .)"
