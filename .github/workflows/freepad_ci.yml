@@ -80,7 +80,7 @@ jobs:
         id: pyinstaller
         run: |
           cd pad
-          pyinstaller -y --clean ${{ env.spec_file }}
+          pyinstaller --clean ${{ env.spec_file }}
           cd ..
 
       - name: Compress files
