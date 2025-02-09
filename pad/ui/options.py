@@ -164,7 +164,7 @@ class FreepadOptionsWindow(QDialog, Creator):
 		return filename
 
 	def loadHelp(self):
-		with open("pad/help/freepad.html", "r") as fp:
+		with open(str(FREEPAD_PATH.joinpath('help').joinpath('freepad.html')), 'r') as fp:
 			html = fp.read()
 			fp.close()
 			self.tHelp.setHtml(html)
