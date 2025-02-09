@@ -68,7 +68,8 @@ jobs:
       - name: Get latest tag
         id: checkout
         run: | 
-            git fetch --tags > /dev/null 2>&1 
+            # git fetch --tags > /dev/null 2>&1
+            git fetch --tags > /dev/null
             latest=$(git describe --tags `git rev-list --tags --max-count=1`)
             echo "latest_tag=$latest" >> "$GITHUB_OUTPUT"
             echo "💡 The ${{ github.repository }} repository has been cloned to the runner. Last tag is $latest"
@@ -91,7 +92,7 @@ jobs:
         run: |
           echo "$(tar -cjf ${DEST} ${{env.include_files}} -C pad/dist/collected .)"
           echo "zipfile=$DEST" >> "$GITHUB_OUTPUT"
-        
+
       - name: Release
         env:
           TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
