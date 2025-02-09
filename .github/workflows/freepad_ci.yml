@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         # ubuntu-22.04-arm fails on qm qmake
-        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, windows-2019, windows-2022, windows-2025, macos-13, macos-14, macos-15]
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, windows-2022, windows-2025, macos-13, macos-14, macos-15]
     runs-on: ${{ matrix.os }}
 
     steps:
