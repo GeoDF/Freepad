@@ -1,6 +1,6 @@
 # For testing before integration in freepad-ci
 
-name: Freepad CI
+name: Freepad CI - testing
 run-name: ${{ github.actor }} Freepad CI
 
 on: 
