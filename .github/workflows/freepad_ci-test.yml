@@ -24,11 +24,10 @@ jobs:
   Build-Freepad-Action:
     strategy:
       matrix:
-        os: [ubuntu-22.04-arm]
+        os: [macos-15]
     runs-on: ${{ matrix.os }}
 
     steps:
-      - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
       
       - name: Make ImageOS env var available outside of shells
