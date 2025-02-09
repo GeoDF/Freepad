@@ -1,10 +1,15 @@
 name: Test things
 run-name: ${{ github.actor }} is testing some things 🚀
 on: [workflow_dispatch]
+
+# runs-on: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, ubuntu-22.04-arm, ubuntu-24.04-arm, windows-2019, windows-2022, windows-2025, macos-13, macos-14, macos-15 ]
 jobs:
   Explore-Actions:
-    # runs-on: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, ubuntu-22.04-arm, ubuntu-24.04-arm, windows-2019, windows-2022, windows-2025, macos-13, macos-14, macos-15 ]
-    runs-on: [ubuntu-22.04, ubuntu-24.04]
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server. Arch ${{ runner.arch }}. Name ${{ runner.name }}"
