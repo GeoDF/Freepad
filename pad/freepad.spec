@@ -37,7 +37,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    contents_directory='freepad',
+    contents_directory='freepad_libs',
     icon='ui/img/djembe.png'
 )
 coll = COLLECT(
@@ -47,5 +47,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='.',
+    name='collected',
 )
