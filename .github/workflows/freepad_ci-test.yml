@@ -1,7 +1,7 @@
 # For testing before integration in freepad-ci
 
 name: Testing Freepad CI
-run-name: ${{ github.actor }} Freepad CI
+run-name: ${{ github.actor }} Testing Freepad CI
 
 on: 
   workflow_dispatch:
