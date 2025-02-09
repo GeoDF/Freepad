@@ -57,6 +57,10 @@ jobs:
         if: runner.os == 'Windows'
         run: python -m pip install pillow
 
+      - name: qmake fix on ubuntu-22.04-arm
+        if: matrix.os == 'ubuntu-22.04-arm'
+        run: python configure.py -q /usr/bin/qmake
+
       - name: Install pyinstaller
         run: python -m pip install pyinstaller
 
