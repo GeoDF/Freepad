@@ -37,6 +37,7 @@ class Pad(QWidget, Creator):
 			["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
 			[u"Do", u"Do#", u"Ré", u"Ré#", u"Mi", u"Fa", u"Fa#", u"Sol", u"Sol#", u"La", u"La#", u"Si",]
 		]
+		self.isOn = False
 
 	def setupUi(self, params):
 		subcontrols = {}
@@ -261,10 +262,12 @@ str(128 * self.off_blue1 + self.off_blue2) + ');}'
 			pass
 
 	def _sendNoteOn(self):
+		self.isOn = True
 		self.sendNoteOn.emit(self.mc, self.note, self.level.defaultVelocity)
 		self.lightOn(self.level.defaultVelocity)
 
 	def _sendNoteOff(self):
+		self.isOn = False
 		self.sendNoteOff.emit(self.mc, self.note, self.level.defaultVelocity)
 		self.lightOff()
 
