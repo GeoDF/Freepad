@@ -26,20 +26,21 @@ jobs:
   Build-Freepad-Action:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # ubuntu-22.04-arm fails on qm qmake
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, windows-2019, windows-2022, windows-2025, macos-14]
     runs-on: ${{ matrix.os }}
 
     steps:
       - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
-      - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} server."
+      - run: echo "🔎 Building branch ${{ github.ref }} of ${{ github.repository }} on a ${{ runner.os }} ${{ runner.arch }} server."
       
       - name: Make ImageOS env var available outside of shells
         working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
           echo ImageOS=$ImageOS>> $GITHUB_ENV
   
-      - name: Install some deps if on ubuntu-latest
-        if: matrix.os == 'ubuntu-latest'
+      - name: Install some deps if on Linux
+        if: runner.os == 'Linux'
         run: |
           set -e
           sudo apt-get install libasound2-dev
@@ -56,7 +57,7 @@ jobs:
       - run: echo "🎉 Python ${{ steps.install_python.outputs.python-version }} installed."
 
       - name: install Pillow on Windows
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: python -m pip install pillow
 
       - name: Install pyinstaller
