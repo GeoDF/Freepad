@@ -79,6 +79,7 @@ jobs:
       - name: Create executable
         id: pyinstaller
         run: |
+          set -e
           cd pad
           pyinstaller ${{ env.spec_file }}
           cd ..
@@ -89,6 +90,7 @@ jobs:
           TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
           DEST: "freepad-${{ steps.checkout.outputs.latest_tag }}_${{env.ImageOS}}.tar.bz2"
         run: |
+          set -e
           echo "$(tar -cjf ${DEST} ${{env.include_files}} -C pad/dist/collected .)"
           echo "zipfile=$DEST" >> "$GITHUB_OUTPUT"
 
