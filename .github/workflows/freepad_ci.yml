@@ -87,10 +87,9 @@ jobs:
         id: zip
         env:
           TAG_NAME: "${{ steps.checkout.outputs.latest_tag }}"
-          EXE: "${{ steps.pyinstaller.outputs.executable }}"
           DEST: "freepad-${{ steps.checkout.outputs.latest_tag }}_${{env.ImageOS}}.tar.bz2"
         run: |
-          echo "$(tar -cjf ${DEST} ${{env.include_files}} -C pad/dist/collected *)"
+          echo "$(tar -cjf ${DEST} ${{env.include_files}} -C pad/dist/collected .)"
           echo "zipfile=$DEST" >> "$GITHUB_OUTPUT"
         
       - name: Release
