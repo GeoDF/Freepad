@@ -41,6 +41,7 @@ jobs:
       - name: Install some deps if on ubuntu-latest
         if: matrix.os == 'ubuntu-latest'
         run: |
+          set -e
           sudo apt-get install libasound2-dev
           sudo apt-get install libjack-dev
           sudo apt-get install libxkbcommon-x11-dev libxcb-cursor-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xkb-dev # for pyinstaller / QT6
@@ -66,7 +67,8 @@ jobs:
 
       - name: Get latest tag
         id: checkout
-        run: | 
+        run: |
+            set -e
             # git fetch --tags > /dev/null 2>&1
             git fetch --tags > /dev/null
             latest=$(git describe --tags `git rev-list --tags --max-count=1`)
@@ -105,7 +107,7 @@ jobs:
           tag_name: ${{env.TAG_NAME}}
           prerelease: true
           fail_on_unmatched_files: true
-          append_body: true
+          #append_body: true
           files: ${{ steps.zip.outputs.zipfile }}
 
       - run: echo "🍏 Job's status is ${{ job.status }}."
