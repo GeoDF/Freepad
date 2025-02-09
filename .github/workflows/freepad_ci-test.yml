@@ -37,7 +37,7 @@ jobs:
           echo ImageOS=$ImageOS>> $GITHUB_ENV
   
       - name: Install some deps if on ubuntu-latest
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         run: |
           set -e
           sudo apt-get install libasound2-dev
