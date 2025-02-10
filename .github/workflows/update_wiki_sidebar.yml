@@ -1,0 +1,28 @@
+# Placeholder, until code will be coded ! :-)
+
+name: Update wiki sidebar
+run-name: ${{ github.actor }} update wiki sidebar
+
+on: 
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  
+jobs:
+  Update-Wiki-Sidebar:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
+      - run: echo "🔎 Updating wiki sidebar for ${{ github.ref }} of ${{ github.repository }}."
+  
+      - name: Checkout Wiki
+        uses: actions/checkout@v4
+        with:
+          repository: ${{github.repository}}.wiki
+          path: ${{github.repository}}.wiki
+
+      - name: Check
+        run: |
+          ls
+
