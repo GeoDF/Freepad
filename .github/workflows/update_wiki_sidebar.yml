@@ -35,10 +35,10 @@ jobs:
       - name: Update Wiki
         uses: GeodF/sidebar@v0
         with:
-          menu_title: ${{workflow_dispatch.inputs.menu_title }}
-          menu_pages: ${{workflow_dispatch.inputs.menu_pages }}
-          menu_footer: ${{workflow_dispatch.inputs.menu_footer }}
-          menu_size: ${{workflow_dispatch.inputs.menu_size }}
-          menu_color: ${{workflow_dispatch.inputs.menu_color }}
+          menu_title: ${{ inputs.menu_title }}
+          menu_pages: ${{ inputs.menu_pages }}
+          menu_footer: ${{ inputs.menu_footer }}
+          menu_size: ${{ inputs.menu_size }}
+          menu_color: ${{ inputs.menu_color }}
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
