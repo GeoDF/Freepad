@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       menu_title:
-        description: "Menu title"
+        description: "Menu title (not implemented)"
         required: false
       menu_pages:
         description: "List of pages to put at the first level"
@@ -16,10 +16,10 @@ on:
         description: "Size"
         required: false
       color:
-        description: "Color"
+        description: "Color (not implemented)"
         required: false
       menu_footer:
-        description: "Menu footer"
+        description: "Menu footer (not implemented)"
         required: false
 
 permissions:
