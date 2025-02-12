@@ -17,7 +17,7 @@ jobs:
       - run: echo "🔎 Updating wiki sidebar for ${{ github.ref }} of ${{ github.repository }}."
   
       - name: Update Wiki
-        uses: GeodF/sidebar@main
+        uses: GeodF/sidebar@v0
         with:
           menu_title: test
 
