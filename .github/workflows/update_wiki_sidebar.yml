@@ -5,6 +5,22 @@ run-name: ${{ github.actor }} update wiki sidebar
 
 on: 
   workflow_dispatch:
+    inputs:
+      menu_title:
+        description: "Menu title"
+        required: false
+      menu_pages:
+        description: "List of pages to put at the first level"
+        required: false
+      size:
+        description: "Size"
+        required: false
+      color:
+        description: "Color"
+        required: false
+      menu_footer:
+        description: "Menu footer"
+        required: false
 
 permissions:
   contents: write
@@ -19,6 +35,10 @@ jobs:
       - name: Update Wiki
         uses: GeodF/sidebar@v0
         with:
-          menu_title: test
+          menu_title: ${{workflow_dispatch.inputs.menu_title }}
+          menu_pages: ${{workflow_dispatch.inputs.menu_pages }}
+          menu_footer: ${{workflow_dispatch.inputs.menu_footer }}
+          menu_size: ${{workflow_dispatch.inputs.menu_size }}
+          menu_color: ${{workflow_dispatch.inputs.menu_color }}
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
