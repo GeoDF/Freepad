@@ -1,4 +1,4 @@
-# Placeholder, until code will be coded ! :-)
+# Work in progress ...
 
 name: Update wiki sidebar
 run-name: ${{ github.actor }} update wiki sidebar
@@ -16,13 +16,9 @@ jobs:
       - run: echo "🎉 job triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 Updating wiki sidebar for ${{ github.ref }} of ${{ github.repository }}."
   
-      - name: Checkout Wiki
-        uses: actions/checkout@v4
+      - name: Update Wiki
+        uses: GeodF/sidebar@main
         with:
-          repository: ${{github.repository}}.wiki
+          menu_title: test
 
-      - name: Check
-        run: |
-          ls 
-          
       - run: echo "🍏 This job's status is ${{ job.status }}."
