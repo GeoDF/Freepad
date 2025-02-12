@@ -8,7 +8,8 @@ on:
 
 permissions:
   contents: read
-  
+  pages: write
+
 jobs:
   Update-Wiki-Sidebar:
     runs-on: ubuntu-latest
