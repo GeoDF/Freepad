@@ -8,10 +8,10 @@ on:
         description: "Menu title"
         required: false
       menu_pages:
-        description: "List of pages to put at the first level. Default: all pages"
+        description: "Menu pages (1st level). Default: your previous list."
         required: false
       menu_size:
-        description: "Size: 1, 2, or 3. Default: 2"
+        description: "Size: 1, 2, 3, 4, or 5. Default: 3"
         required: false
       menu_color:
         description: "Color (not implemented)"
