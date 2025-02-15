@@ -5,19 +5,20 @@ on:
   workflow_dispatch:
     inputs:
       menu_title:
-        description: "Menu title"
+        description: "Title"
         required: false
       menu_pages:
-        description: "Menu pages (1st level). Default: your previous list."
-        required: false
-      menu_size:
-        description: "Size: 1, 2, 3, 4, or 5."
-        required: false
-      menu_color:
-        description: "Color (not implemented)"
+        description: "Pages (1st level). Default: your previous list."
         required: false
       menu_footer:
-        description: "Menu footer"
+        description: "Footer"
+        required: false
+      menu_opened:
+        description: "Opened ?"
+        required: false
+        type: boolean
+      menu_size:
+        description: "Size: 1, 2, 3, 4, or 5."
         required: false
 
 permissions:
@@ -31,13 +32,14 @@ jobs:
       - run: echo "🔎 Updating wiki sidebar for ${{ github.ref }} of ${{ github.repository }}."
   
       - name: Update Wiki
-        uses: GeodF/sidebar@v0
+        uses: GeodF/sidebar@dev
         with:
           menu_title: "${{ inputs.menu_title }}"
           menu_pages: "${{ inputs.menu_pages }}"
           menu_footer: "${{ inputs.menu_footer }}"
+          menu_opened: "${{ inputs.menu_opened }}"
           menu_size: "${{ inputs.menu_size }}"
-          menu_color: "${{ inputs.menu_color }}"
+
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
