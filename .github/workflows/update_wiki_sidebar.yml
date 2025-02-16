@@ -32,7 +32,7 @@ jobs:
       - run: echo "🔎 Updating wiki sidebar for ${{ github.ref }} of ${{ github.repository }}."
   
       - name: Update Wiki
-        uses: GeodF/sidebar@dev
+        uses: GeodF/sidebar@v0
         with:
           menu_title: "${{ inputs.menu_title }}"
           menu_pages: "${{ inputs.menu_pages }}"
