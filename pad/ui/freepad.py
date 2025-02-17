@@ -2,7 +2,7 @@ import os, json
 
 from qtpy.QtCore import QDir, QMetaObject, Qt, QTimer
 from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGridLayout, \
-	QHBoxLayout, QLabel, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QStatusBar, QSpinBox, \
+	QHBoxLayout, QLabel, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QSpinBox, \
 	QStyle, QVBoxLayout, QWidget
 from qtpy.QtGui import QIcon, QKeyEvent
 
@@ -25,6 +25,10 @@ class FreepadWindow(QWidget, Creator):
 		self.setWindowIcon(QIcon(FREEPAD_ICON_PATH))
 		self.setAttribute(Qt.WA_DeleteOnClose) #noqa
 		self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+		self.fontsize = '14px'
+		self.fontsize_small = '12px'
+
 		for p in ['device', 'in_name', 'defaultKit', 'defaultControls', 'settings', 'debug']:
 			if p in params:
 				setattr(self, p, params[p])
@@ -45,12 +49,13 @@ class FreepadWindow(QWidget, Creator):
 		self.setStyleSheet('''
 FreepadWindow * {
 	color: ''' + FREEPAD_TITLE_COLOR + ''';
+	font-size: ''' + self.fontsize + ''';
 }
 FreepadWindow, #statusbar, Pad #padLW {
 	background: ''' + FREEPAD_LGRADIENT + ''';
 }
 #cbName, Program #bTitle, #statusbar {
-	font-size: 12px; color: ''' + FREEPAD_TITLE_COLOR + ''';
+	font-size: ''' + self.fontsize_small + '''; color: ''' + FREEPAD_TITLE_COLOR + ''';
 }
 QComboBox:focus, QComboBox:hover {
 	border: 1px inset ''' + FREEPAD_BORD_COLOR + ''';
@@ -92,7 +97,7 @@ QComboBox QListView {
 	selection-background-color: #8f2200; selection-color: #000022;
 }
 Pad #btnNote, #statusbar {
-	font-size: 12px; color: ''' + FREEPAD_NOTE_COLOR + ''';
+	font-size: ''' + self.fontsize_small + '''; color: ''' + FREEPAD_NOTE_COLOR + ''';
 }
 QPushButton, QComboBox, QComboBox QListView {
 	background: ''' + FREEPAD_RGRADIENT + ''';
