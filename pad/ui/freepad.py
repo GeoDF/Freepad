@@ -484,7 +484,7 @@ QToolTip {
 		if padnum > 0:
 			pad = self.findChildren(QWidget, 'p' + str(padnum))
 			if len(pad) > 0:
-				pad[0].lightOn()
+				pad[0].lightOn(0)
 				QTimer.singleShot(200, lambda: pad[0].lightOff())
 		else:
 			self.warning('Cannot retrieve pad from program change with program' + str(self.padProgramChanges))
