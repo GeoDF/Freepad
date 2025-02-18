@@ -2,12 +2,13 @@
 from pathlib import Path
 
 from qtpy.QtCore import QDir, QMetaObject
-from qtpy.QtWidgets import QCheckBox, QDialog, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, \
+from qtpy.QtWidgets import QCheckBox, QComboBox, QDialog, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, \
 	QSizePolicy, QSpacerItem, QTabWidget, QTextBrowser, QRadioButton, QPushButton, QVBoxLayout, QStyle, QWidget
 from qtpy.QtGui import QDesktopServices, QIcon
 
 from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH
 from pad.ui.common import Creator, tr
+from pad.padio import Mid
 
 class FreepadOptionsWindow(QDialog, Creator):
 	def __init__(self, settings, parent = None):
@@ -45,33 +46,6 @@ class FreepadOptionsWindow(QDialog, Creator):
 
 		self.vLayoutOptions.addLayout(self.hLayout)
 
-		self.createObj(u'flPaths', QFormLayout())
-		self.createObj(u'lblDrums', QLabel())
-		self.flPaths.setWidget(0, QFormLayout.LabelRole, self.lblDrums)
-		self.createObj(u'hlDrums', QHBoxLayout())
-		self.createObj(u'leDrums', QLineEdit())
-		self.leDrums.setText(self.defaultDrumsKit)
-		self.createObj(u'btnDrums', QPushButton())
-		self.btnDrums.setIcon(self._openIcon)
-		self.hlDrums.addWidget(self.leDrums)
-		self.hlDrums.addWidget(self.btnDrums)
-		self.hlDrums.setStretch(0, 1)
-		self.flPaths.setLayout(0, QFormLayout.FieldRole, self.hlDrums)
-
-		self.createObj(u'lblControls', QLabel())
-		self.flPaths.setWidget(1, QFormLayout.LabelRole, self.lblControls)
-		self.createObj(u'hlControls', QHBoxLayout())
-		self.createObj(u'leControls', QLineEdit())
-		self.leControls.setText(self.defaultControlsKit)
-		self.createObj(u'btnControls', QPushButton())
-		self.btnControls.setIcon(self._openIcon)
-		self.hlControls.addWidget(self.leControls)
-		self.hlControls.addWidget(self.btnControls)
-		self.hlControls.setStretch(0, 1)
-		self.flPaths.setLayout(1, QFormLayout.FieldRole, self.hlControls)
-
-		self.vLayoutOptions.addLayout(self.flPaths)
-
 		self.gbNoteStyle = QGroupBox("&Note style")
 		self.gbNoteStyle.setStyleSheet("QGroupBox:title {margin-left:15px; margin-top:12px; background-color:transparent}")
 		self.vLayoutNoteStyle = QVBoxLayout()
@@ -86,6 +60,44 @@ class FreepadOptionsWindow(QDialog, Creator):
 		self.vLayoutNoteStyle.addWidget(self.rbCDE)
 		self.gbNoteStyle.setLayout(self.vLayoutNoteStyle)
 		self.vLayoutOptions.addWidget(self.gbNoteStyle)
+
+		self.createObj(u'formLayout', QFormLayout())
+		self.createObj(u'lblDrums', QLabel())
+		self.formLayout.setWidget(0, QFormLayout.LabelRole, self.lblDrums)
+		self.createObj(u'hlDrums', QHBoxLayout())
+		self.createObj(u'leDrums', QLineEdit())
+		self.leDrums.setText(self.defaultDrumsKit)
+		self.createObj(u'btnDrums', QPushButton())
+		self.btnDrums.setIcon(self._openIcon)
+		self.hlDrums.addWidget(self.leDrums)
+		self.hlDrums.addWidget(self.btnDrums)
+		self.hlDrums.setStretch(0, 1)
+		self.formLayout.setLayout(0, QFormLayout.FieldRole, self.hlDrums)
+
+		self.createObj(u'lblControls', QLabel())
+		self.formLayout.setWidget(1, QFormLayout.LabelRole, self.lblControls)
+		self.createObj(u'hlControls', QHBoxLayout())
+		self.createObj(u'leControls', QLineEdit())
+		self.leControls.setText(self.defaultControlsKit)
+		self.createObj(u'btnControls', QPushButton())
+		self.btnControls.setIcon(self._openIcon)
+		self.hlControls.addWidget(self.leControls)
+		self.hlControls.addWidget(self.btnControls)
+		self.hlControls.setStretch(0, 1)
+		self.formLayout.setLayout(1, QFormLayout.FieldRole, self.hlControls)
+
+		MIDI_OUTPUT_PORT = tr('No MIDI output')
+		self.createObj(u'lblMidiOutputPort', QLabel())
+		self.createObj('cbMidiOutputPort', QComboBox())
+		self.cbMidiOutputPort.addItem(MIDI_OUTPUT_PORT)
+		for port in Mid.get_output_names():
+			self.cbMidiOutputPort.addItem(port)
+		self.cbMidiOutputPort.setCurrentText(self.settings.value('midiOutputPort', MIDI_OUTPUT_PORT))
+		self.cbMidiOutputPort.currentTextChanged.connect(lambda t: self.settings.setValue('midiOutputPort', t))
+		self.formLayout.setWidget(2, QFormLayout.LabelRole, self.lblMidiOutputPort)
+		self.formLayout.setWidget(2, QFormLayout.FieldRole, self.cbMidiOutputPort)
+
+		self.vLayoutOptions.addLayout(self.formLayout)
 
 		self.cbToolbar = QCheckBox(self.tabOptions)
 		self.cbToolbar.setObjectName(u"cbToolbar")
@@ -134,6 +146,7 @@ class FreepadOptionsWindow(QDialog, Creator):
 		self.rbDoremi.setText(tr(u"Do Ré Mi", None))
 		self.rbCDE.setText(tr(u"C D E ", None))
 		self.cbToolbar.setText(tr(u"&Show midi messages", None))
+		self.lblMidiOutputPort.setText(tr('Midi output'))
 		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabOptions), tr(u"Options", None))
 		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabHelp), tr(u"Help", None))
 		# retranslateUi

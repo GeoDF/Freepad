@@ -32,7 +32,7 @@ class FreepadWindow(QWidget, Creator):
 		for p in ['device', 'in_name', 'defaultKit', 'defaultControls', 'settings', 'debug']:
 			if p in params:
 				setattr(self, p, params[p])
-		self.io = PadIO(self.device, self.in_name)
+		self.io = PadIO(self.device, self.in_name, self.settings)
 		try: 
 			self.io.receivedMidi.disconnect(self.receivedMidi)
 		except:
@@ -227,11 +227,11 @@ QToolTip {
 				c = c + 1
 			l = l + 1
 
-		self.createObj(u'hLayoutMC', QHBoxLayout())
-		self.hLayoutMC.setContentsMargins(0, 0, 0, 0)
-		self.hLayoutMC.setSpacing(10)
+		self.createObj(u'hLayoutBottom', QHBoxLayout())
+		self.hLayoutBottom.setContentsMargins(0, 0, 0, 0)
+		self.hLayoutBottom.setSpacing(10)
 		self.createObj(u'labelMC', QLabel())
-		self.hLayoutMC.addWidget(self.labelMC)
+		self.hLayoutBottom.addWidget(self.labelMC)
 		self.createObj(u'mc', QComboBox())
 		self.mc.setMinimumWidth(60)
 		self.mc.setEditable(True)
@@ -240,18 +240,18 @@ QToolTip {
 		for ch in range(1,17):
 			sp = '  ' if ch < 10 else ''
 			self.mc.addItem(sp + str(ch))
-		self.hLayoutMC.addWidget(self.mc)
+		self.hLayoutBottom.addWidget(self.mc)
 		self._controls['mc'] = self.mc
 
 		self.lblAlert = QLabel()
 		self.lblAlert.setAlignment(Qt.AlignmentFlag.AlignCenter)
 		self.lblAlert.setStyleSheet('color: #ff2800;')
-		self.hLayoutMC.addWidget(self.lblAlert)
-		self.hLayoutMC.setStretch(2,1)
+		self.hLayoutBottom.addWidget(self.lblAlert)
+		self.hLayoutBottom.setStretch(2,1)
 		if self.nbPrograms == 0:
-			self.addAppButtons(self.hLayoutMC)
+			self.addAppButtons(self.hLayoutBottom)
 
-		self.vLayoutd.addLayout(self.hLayoutMC)
+		self.vLayoutd.addLayout(self.hLayoutBottom)
 		self.hLayout.addLayout(self.vLayoutd)
 		self.vLayout.addLayout(self.hLayout)
 		# status bar

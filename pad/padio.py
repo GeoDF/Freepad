@@ -3,6 +3,8 @@ import mido.backends.rtmidi
 
 from qtpy.QtCore import QObject, QThread, QTimer, Signal
 
+from pad.ui.common import tr
+
 class Mid(object):
 	@staticmethod
 	def get_input_names():
@@ -44,10 +46,11 @@ class Mid(object):
 class PadIO(QObject):
 	receivedMidi = Signal(str)
 
-	def __init__(self, pad, midiname : str, parent = None):
+	def __init__(self, pad, midiname : str, settings, parent = None):
 		super().__init__(parent)
 		self.pad = pad
 		self.midiname = midiname
+		self.settings = settings
 		self.program = []
 		if 'program' in pad:
 			program = pad["program"]
@@ -85,12 +88,13 @@ class PadIO(QObject):
 				self.isConnected = self.midiListenerThread.isRunning()
 			except Exception as e:
 				print('Error in openDevicePorts: ' + str(e))
+		MIDI_OUTPUT_PORT = self.settings.value('midiOutputPort', tr('No MIDI output'))
 		try:
 			for name in Mid.get_output_names():
-				if 'Midi Through' in name:
+				if MIDI_OUTPUT_PORT in name:
 					self.mtout_port = Mid.open_output(name)
 		except Exception as e:
-			print('Unable to connect Freepad to the "Midi Through" port. ' + str(e))
+			print('Unable to connect Freepad to "' + MIDI_OUTPUT_PORT + '. ' + str(e))
 
 
 	def closeDevicePorts(self):
