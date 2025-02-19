@@ -3,7 +3,8 @@ import mido.backends.rtmidi
 
 from qtpy.QtCore import QObject, QThread, QTimer, Signal
 
-from pad.ui.common import tr
+from pad.freepad_settings import Fsettings
+from pad.ui.common import Debug, tr
 
 class Mid(object):
 	@staticmethod
@@ -46,11 +47,10 @@ class Mid(object):
 class PadIO(QObject):
 	receivedMidi = Signal(str)
 
-	def __init__(self, pad, midiname : str, settings, parent = None):
+	def __init__(self, pad, midiname : str, parent = None):
 		super().__init__(parent)
 		self.pad = pad
 		self.midiname = midiname
-		self.settings = settings
 		self.program = []
 		if 'program' in pad:
 			program = pad["program"]
@@ -87,15 +87,21 @@ class PadIO(QObject):
 				self.midiListenerThread.start()
 				self.isConnected = self.midiListenerThread.isRunning()
 			except Exception as e:
-				print('Error in openDevicePorts: ' + str(e))
-		MIDI_OUTPUT_PORT = self.settings.value('midiOutputPort', tr('No MIDI output'))
+				Debug.dbg('Error in openDevicePorts: ' + str(e))
+		MIDI_OUTPUT_PORT = Fsettings.get('midiOutputPort', tr('No MIDI output'))
 		try:
 			for name in Mid.get_output_names():
 				if MIDI_OUTPUT_PORT in name:
-					self.mtout_port = Mid.open_output(name)
+					self.setMidiOutPort(name)
 		except Exception as e:
-			print('Unable to connect Freepad to "' + MIDI_OUTPUT_PORT + '. ' + str(e))
+			Debug.dbg('Unable to connect Freepad to "' + MIDI_OUTPUT_PORT + '. ' + str(e))
 
+	def setMidiOutPort(self, port_name):
+		try:
+			self.mtout_port.close()
+		except:
+			pass
+		self.mtout_port = Mid.open_output(port_name)
 
 	def closeDevicePorts(self):
 		try: 
@@ -124,11 +130,10 @@ class PadIO(QObject):
 							return name
 			return None
 		except Exception as e:
-			print("Error in _find_pad: " + str(e))
+			Debug.dbg("Error in _find_pad: " + str(e))
 
 	def close(self):
 		self.closeDevicePorts()
-		#self.mtout_port.close()
 
 	# Reuest for the program n° nb. Response read by MidiListener and received by ui
 	def getProgram(self, nb):
@@ -136,11 +141,11 @@ class PadIO(QObject):
 			data = self.pad['get_program'].replace('pid', str(nb)).split(",")
 			data = [int(h, 16) for h in data]
 		except Exception as e:
-			print('Bad "get_program" value in the JSON file: ' + str(e))
+			Debug.dbg('Bad "get_program" value in the JSON file: ' + str(e))
 		try:
 			self.out_port.send(mido.Message('sysex', data = data))
 		except Exception as e:
-			print('Unable to request program ' + str(nb) + ': ' + str(e))
+			Debug.dbg('Unable to request program ' + str(nb) + ': ' + str(e))
 
 	def sendProgram(self, pid, program):
 		data = self.pad["send_program"].replace('pid', str(pid)).split(",")

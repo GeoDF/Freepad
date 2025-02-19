@@ -7,7 +7,8 @@ from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGri
 from qtpy.QtGui import QIcon, QKeyEvent
 
 from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH, imgUrl
-from pad.ui.common import Creator, \
+from pad.freepad_settings import Fsettings
+from pad.ui.common import Creator, Debug, \
 	PadException, tr, \
 	FREEPAD_TITLE_COLOR, \
 	FREEPAD_NOTE_COLOR, \
@@ -15,9 +16,11 @@ from pad.ui.common import Creator, \
 	FREEPAD_LGRADIENT, \
 	FREEPAD_RGRADIENT, \
 	FREEPAD_RGRADIENT_OVER
+	
 from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
 from pad.padio import PadIO
+
 
 class FreepadWindow(QWidget, Creator):
 	def __init__(self, params):
@@ -29,10 +32,10 @@ class FreepadWindow(QWidget, Creator):
 		self.fontsize = '14px'
 		self.fontsize_small = '12px'
 
-		for p in ['device', 'in_name', 'defaultKit', 'defaultControls', 'settings', 'debug']:
+		for p in ['device', 'in_name', 'defaultKit', 'defaultControls']:
 			if p in params:
 				setattr(self, p, params[p])
-		self.io = PadIO(self.device, self.in_name, self.settings)
+		self.io = PadIO(self.device, self.in_name)
 		try: 
 			self.io.receivedMidi.disconnect(self.receivedMidi)
 		except:
@@ -126,7 +129,6 @@ QToolTip {
 		self.in_symbol = '<span style="color:#882200">-\u25B6</span>'
 		self.out_symbol = '<span style="color:#882200">\u25C0-</span>'
 
-		self.showMidiMessages = True if str(self.settings.value('showMidiMessages', 'True')) == 'True'  else False
 		self.settingProgram = False
 		self.padNotes = []
 		self.padProgramChanges = []
@@ -144,6 +146,8 @@ QToolTip {
 			self.load1stPreset()
 
 	def setupUi(self):
+		self.showMidiMessages = True if str(Fsettings.get('showMidiMessages', 'True')) == 'True'  else False
+
 		if 'pad' in self.device:
 			if 'mc' in self.device['pad']:
 				self.pmc = 0
@@ -205,12 +209,12 @@ QToolTip {
 					ctlType = ctl.rstrip('0123456789')
 					ctlNum = ctl[len(ctlType):]
 					if ctlType == 'p':
-						ctlClass = Pad(ctlNum, self.settings)
+						ctlClass = Pad(ctlNum)
 						params = {'kit': self.defaultKit, \
-										'bv': 'bv' in self.device['pad'], \
-										'rgb': 'on_red1' in self.device['pad'],
-										'mc': self.pmc
-										}
+							'bv': 'bv' in self.device['pad'], \
+							'rgb': 'on_red1' in self.device['pad'],
+							'mc': self.pmc
+						}
 						ctlClass.sendNoteOn.connect(self._sendNoteOn)
 						ctlClass.sendNoteOff.connect(self._sendNoteOff)
 						ctlClass.keyChanged.connect(self._padKeyChanged)
@@ -218,7 +222,8 @@ QToolTip {
 						ctlClass = Knob(ctlNum)
 						ctlClass.sendControlChanged.connect(self._sendControlChanged)
 						params = {'midi_controls': self.defaultControls, \
-										'mc': self.kmc}
+							'mc': self.kmc
+						}
 					control = self.createObj(ctl, ctlClass)
 					subcontrols = control.setupUi(params)
 					self.gLayout.addWidget(control, l, c, 1, 1, alignment = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -256,8 +261,7 @@ QToolTip {
 		self.vLayout.addLayout(self.hLayout)
 		# status bar
 		if self.showMidiMessages:
-			self.createObj(u'statusbar', QLabel())
-			self.vLayout.addWidget(self.statusbar)
+			self.addStatusBar()
 
 		self.retranslateUi()
 		self.setFixedSize(self.sizeHint())
@@ -265,6 +269,15 @@ QToolTip {
 		self.mc.currentIndexChanged.connect(self.valueChanged)
 
 		QMetaObject.connectSlotsByName(self)
+
+	def addStatusBar(self):
+		self.createObj(u'statusbar', QLabel())
+		self.vLayout.addWidget(self.statusbar)
+		self.showMidiMessages = True
+
+	def removeStatusBar(self):
+		self.showMidiMessages = False
+		self.vLayout.removeWidget(self.statusbar)
 
 	def addAppButtons(self, layout):
 		self.createObj(u'tbLayout', QHBoxLayout())
@@ -297,14 +310,14 @@ QToolTip {
 		dialog.setFileMode(fileMode)
 		dialog.setAcceptMode(acceptMode)
 		dialog.setNameFilter(self.midiname + ' program(*.' + self.midiname.lower() + ')')
-		wDir = self.settings.value('Freepad/lastDir', os.getenv('HOME'))
+		wDir = Fsettings.get('lastDir', os.getenv('HOME'))
 		dialog.setDirectory(QDir(wDir))
 		if dialog.exec():
 			filenames = dialog.selectedFiles()
 			if len(filenames) > 0:
 				filename = dialog.selectedFiles()[0]
 				lastdir = dialog.directory().absolutePath()
-				self.settings.setValue('Freepad/lastDir', lastdir)
+				Fsettings.set('lastDir', lastdir)
 		return filename
 
 	def load1stPreset(self):
@@ -325,7 +338,7 @@ QToolTip {
 				QApplication.restoreOverrideCursor()
 
 		except Exception as e:
-			self.cprint('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
+			Debug.dbg('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
 
 	def _loadProgram(self, filename):
 		with open(filename, 'r') as fp:
@@ -365,7 +378,7 @@ QToolTip {
 					json.dump([pgm[1:], self._ctlVars()], fp)
 					fp.close()
 		except Exception as e:
-			self.cprint('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
+			Debug.dbg('Unable to save ' + self.midiname + ' program in "' + filename + '": ' + str(e))
 
 	# return control names and keyboard keys
 	def _ctlVars(self):
@@ -400,12 +413,8 @@ QToolTip {
 
 	def warning(self, msg, detail =''):
 		self.lblAlert.setText(msg + '.')
-		self.cprint(msg + detail)
+		Debug.dbg(msg + detail)
 		QTimer.singleShot(4000, lambda: self.lblAlert.setText(''))
-
-	def cprint(self, msg):
-		if self.debug:
-			print(msg)
 
 	def _padFromNote(self, note):
 		if not 'program' in self.io.pad:
@@ -496,7 +505,7 @@ QToolTip {
 
 	def _midiSysex(self, data):
 		data = data[6: -1].split(',')
-		self.cprint('Received ' + str(data))
+		Debug.dbg('Received ' + str(data))
 		self.setProgram(data[len(self.io.pad['get_program'].split(',')) - 1:])
 
 	# Set an UI value.
@@ -513,9 +522,7 @@ QToolTip {
 				setattr(pad, onoff + '_' + color, value)
 				pad.lightOff()
 			else:
-				print(varname)
 				ctl = self.findChildren(QWidget, varname)
-				print('ctl=' + str(ctl) + ' ' + varname + ' ' + str(self._controls.keys()))
 				if len(ctl) > 0:
 					ctl = ctl[0]
 					if isinstance(ctl, QSpinBox):
@@ -523,9 +530,9 @@ QToolTip {
 					elif isinstance(ctl, QComboBox):
 						ctl.setCurrentIndex(int(value))
 				else:
-					print('setValue: ' + varname + ' not found in ' + str(self))
+					Debug.dbg('setValue: ' + varname + ' not found in ' + str(self))
 		except Exception as e:
-			self.cprint('Unable to set ' + varname + ' = ' + str(value) + ' ' + str(e))
+			Debug.dbg('Unable to set ' + varname + ' = ' + str(value) + ' ' + str(e))
 
 	# Set an UI value.
 	def setValue(self, varname, value):
@@ -543,9 +550,9 @@ QToolTip {
 					v = varname[len(ctl.pad_id) + 2:]
 					setattr(ctl, v, value)
 				else:
-					print('setValue: ' + varname + ' not found in ' + str(self))
+					Debug.dbg('setValue: ' + varname + ' not found in ' + str(self))
 		except Exception as e:
-			self.cprint('Unable to set ' + varname + ' = ' + str(value) + ': ' + str(e))
+			Debug.dbg('Unable to set ' + varname + ' = ' + str(value) + ': ' + str(e))
 
 	def getValue(self, varname):
 		if varname not in  self._controls:
@@ -619,8 +626,8 @@ QToolTip {
 			self.retranslateUi()
 			self.getProgram('1') # LPD8 switch to program 4 when disconnected/connected again
 
-		# self.settings.setValue('dontShowAgainReconnectionWarning', False) # used only for debug
-		if not self.settings.value('dontShowAgainReconnectionWarning', False):
+		_DSARW = 'dontShowAgainReconnectionWarning'
+		if not Fsettings.get(_DSARW, False):
 			devname = self.device['midiname']
 			msg = u'Do not forget to connect again your ' + devname + '\nto the Midi Through port or to something else.'
 			mb = QMessageBox(QMessageBox.Warning, 'Freepad', msg)
@@ -628,7 +635,7 @@ QToolTip {
 			mb.setCheckBox(cb)
 			mb.exec()
 			if cb.checkState() == 2:
-				self.settings.setValue('dontShowAgainReconnectionWarning', True)
+				Fsettings.set(_DSARW, True)
 
 	def unplugged(self):
 		self.io.closeDevicePorts()
@@ -641,7 +648,7 @@ QToolTip {
 		self.btnToRam.setEnabled(enabled)
 
 	def showOptionsDialog(self, event):
-		dialog = FreepadOptionsWindow(self.settings)
+		dialog = FreepadOptionsWindow(self)
 		dialog.setupUi(self.midiname)
 		dialog.exec()
 

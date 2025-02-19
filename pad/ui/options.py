@@ -2,19 +2,21 @@
 from pathlib import Path
 
 from qtpy.QtCore import QDir, QMetaObject
-from qtpy.QtWidgets import QCheckBox, QComboBox, QDialog, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, \
-	QSizePolicy, QSpacerItem, QTabWidget, QTextBrowser, QRadioButton, QPushButton, QVBoxLayout, QStyle, QWidget
+from qtpy.QtWidgets import QCheckBox, QComboBox, QDialog, QFileDialog, QFormLayout, QGroupBox, \
+	QHBoxLayout, QLabel, QLineEdit, QSizePolicy, QSpacerItem, QTabWidget, QTextBrowser, \
+	QRadioButton, QPushButton, QVBoxLayout, QStyle, QWidget
 from qtpy.QtGui import QDesktopServices, QIcon
 
 from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH
-from pad.ui.common import Creator, tr
+from pad.freepad_settings import Fsettings
+from pad.ui.common import Creator, Debug, tr
 from pad.padio import Mid
 
 class FreepadOptionsWindow(QDialog, Creator):
-	def __init__(self, settings, parent = None):
+	def __init__(self, fpw, parent = None):
 		super().__init__(parent)
-		self.settings = settings
 		self.setWindowIcon(QIcon(FREEPAD_ICON_PATH))
+		self.fpw = fpw
 
 	def setupUi(self, title):
 		if not self.objectName():
@@ -23,10 +25,10 @@ class FreepadOptionsWindow(QDialog, Creator):
 		self.setMinimumSize(600, 400)
 		self._openIcon = 	self.style().standardIcon(getattr(QStyle.StandardPixmap, "SP_DialogOpenButton"))
 		self.title = title
-		self.showMidiMessages = True if self.settings.value('showMidiMessages', True) == "True" else False
-		self.noteStyle = int(self.settings.value('noteStyle', '1'))
-		self.defaultDrumsKit = self.settings.value('lastkits', self._get1stDefault('kits'))
-		self.defaultControlsKit = self.settings.value('lastcontrols', self._get1stDefault('controls'))
+		self.showMidiMessages = True if Fsettings.get('showMidiMessages', True) == "True" else False
+		self.noteStyle = int(Fsettings.get('noteStyle', '1'))
+		self.defaultDrumsKit = Fsettings.get('lastkits', self._get1stDefault('kits'))
+		self.defaultControlsKit = Fsettings.get('lastcontrols', self._get1stDefault('controls'))
 		self.setContentsMargins(0, 0, 0, 0)
 
 		self.createObj(u"vLayout", QVBoxLayout(self))
@@ -92,8 +94,9 @@ class FreepadOptionsWindow(QDialog, Creator):
 		self.cbMidiOutputPort.addItem(MIDI_OUTPUT_PORT)
 		for port in Mid.get_output_names():
 			self.cbMidiOutputPort.addItem(port)
-		self.cbMidiOutputPort.setCurrentText(self.settings.value('midiOutputPort', MIDI_OUTPUT_PORT))
-		self.cbMidiOutputPort.currentTextChanged.connect(lambda t: self.settings.setValue('midiOutputPort', t))
+		self.cbMidiOutputPort.setCurrentText(Fsettings.get('midiOutputPort', MIDI_OUTPUT_PORT))
+		self.cbMidiOutputPort.currentTextChanged.connect(self.setMidiOutputPort)
+		
 		self.formLayout.setWidget(2, QFormLayout.LabelRole, self.lblMidiOutputPort)
 		self.formLayout.setWidget(2, QFormLayout.FieldRole, self.cbMidiOutputPort)
 
@@ -102,6 +105,7 @@ class FreepadOptionsWindow(QDialog, Creator):
 		self.cbToolbar = QCheckBox(self.tabOptions)
 		self.cbToolbar.setObjectName(u"cbToolbar")
 		self.cbToolbar.setChecked(self.showMidiMessages)
+		self.cbToolbar.stateChanged.connect(self.setShowMidiMessages)
 		self.vLayoutOptions.addWidget(self.cbToolbar)
 
 		self.verticalSpacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
@@ -129,12 +133,11 @@ class FreepadOptionsWindow(QDialog, Creator):
 		
 		self.tabWidget.setCurrentIndex(0)
 
-		self.leDrums.textChanged.connect(lambda t: self.settings.setValue('lastkits', t))
-		self.leControls.textChanged.connect(lambda t: self.settings.setValue('lastcontrols', t))
+		self.leDrums.textChanged.connect(lambda t: Fsettings.set('lastkits', t))
+		self.leControls.textChanged.connect(lambda t: Fsettings.set('lastcontrols', t))
 		self.btnDrums.clicked.connect(lambda e: self.loadKit(u'kits'))
 		self.btnControls.clicked.connect(lambda e: self.loadKit(u'controls'))
-		self.rbDoremi.toggled.connect(lambda b : self.settings.setValue('noteStyle', int(b)))
-		self.cbToolbar.stateChanged.connect(lambda v : self.settings.setValue('showMidiMessages', str(v == 2)))
+		self.rbDoremi.toggled.connect(self.setNoteStyle)
 		self.tHelp.anchorClicked.connect(self.openLinkInBrowser)
 		QMetaObject.connectSlotsByName(self)
 	# setupUi
@@ -151,6 +154,31 @@ class FreepadOptionsWindow(QDialog, Creator):
 		self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabHelp), tr(u"Help", None))
 		# retranslateUi
 
+	def setNoteStyle(self, note_style):
+		Fsettings.set('noteStyle', int(note_style))
+		for line in self.fpw.device['layout']:
+			for ctl in line:
+				if ctl[0:1] != 'p' or ctl == 'pid':
+					continue
+				pad = self.fpw._controls[ctl]
+				pad.noteStyle = note_style
+				pad.noteChanged(pad.spNote.value())
+
+	def setMidiOutputPort(self, port_name):
+		Fsettings.set('midiOutputPort', port_name)
+		self.fpw.io.setMidiOutPort(port_name)
+
+	def setShowMidiMessages(self, val):
+		value = (val == 2)
+		Fsettings.set('showMidiMessages', str(value))
+		if value:
+			self.fpw.addStatusBar()
+			self.fpw.setFixedSize(self.fpw.sizeHint().width(), self.fpw.vLayout.sizeHint().height() + self.fpw.statusbar.sizeHint().height())
+		else:
+			self.fpw.removeStatusBar()
+			self.fpw.statusbar.deleteLater()
+			self.fpw.setFixedSize(self.fpw.sizeHint().width(), self.fpw.vLayout.sizeHint().height())
+
 	def loadKit(self, kit):
 		filename = ''
 		try:
@@ -160,7 +188,7 @@ class FreepadOptionsWindow(QDialog, Creator):
 				le = getattr(self, lename)
 				le.setText(filename)
 		except Exception as e:
-			print('FreepadOptionsWindow.loadKit unable to read "' + filename + '": ' + str(e))
+			Debug.dbg('FreepadOptionsWindow.loadKit unable to read "' + filename + '": ' + str(e))
 
 	def _fileDialog(self, kit):
 		filename = ""
@@ -168,7 +196,7 @@ class FreepadOptionsWindow(QDialog, Creator):
 		dialog.setFileMode(QFileDialog.ExistingFile)
 		dialog.setAcceptMode(QFileDialog.AcceptOpen)
 		dialog.setNameFilter("Kit file(*.kit)")
-		lastkit = self.settings.value('last' + kit, self._get1stDefault(kit))
+		lastkit = Fsettings.get('last' + kit, self._get1stDefault(kit))
 		dialog.setDirectory(QDir(str(Path(lastkit).parent)))
 		if dialog.exec():
 			filenames = dialog.selectedFiles()
@@ -183,10 +211,8 @@ class FreepadOptionsWindow(QDialog, Creator):
 			self.tHelp.setHtml(html)
 
 	def openLinkInBrowser(self, url):
-		#url = QUrl(url)
-		#print(str(url))
 		if not QDesktopServices.openUrl(url):
-			print('Unable to open ' + str(url))
+			Debug.dbg('Unable to open ' + str(url))
 
 	def _get1stDefault(self, d):
 		path = FREEPAD_PATH.joinpath('midi').joinpath(d)

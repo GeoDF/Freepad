@@ -14,7 +14,7 @@ FREEPAD_TOOLTIPS = False # tooltips needs improvements !
 class PadException(Exception):
 	def __init__(self, err):
 		super().__init__(err)
-		print(err)
+		Debug.dbg(err)
 
 class Creator():
 	# Create object of class cls called name
@@ -99,4 +99,17 @@ QSpinBox::down-arrow:focus:disabled, QSpinBox::down-arrow:focus:off {'''	+ arrow
 
 def tr(txt, disambiguation = None):
 	return QCoreApplication.translate('Freepad', txt, disambiguation)
+
+class Debug:
+	_debug = False
+	
+	@classmethod
+	def set(cls, tf):
+		cls._debug = tf
+	
+	@classmethod
+	def dbg(cls, msg):
+		if cls._debug:
+			print(msg)
+
 

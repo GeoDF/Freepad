@@ -2,13 +2,13 @@ import json, os, argparse
 from pathlib import Path
 
 from qtpy.QtWidgets import QApplication, QMessageBox
-from qtpy.QtCore import QSharedMemory, QThread, QSettings
+from qtpy.QtCore import QSharedMemory, QThread
 
 from pad.path import FREEPAD_PATH, FREEPAD_IS_COMPILED
-from pad.ui.common import tr
+from pad.ui.common import Debug, tr
+from pad.freepad_settings import Fsettings
 from pad.ui import FreepadWindow
 from pad.padio import Mid, MidiConnectionListener
-
 
 
 
@@ -25,17 +25,11 @@ if QtCore.QT_VERSION >= 0x50501:
 sys.excepthook = excepthook
 
 
-
-
-
-
-
-
 class FreepadApp(QApplication):
 	def __init__(self, args):
 		super().__init__(args)
 		self.setApplicationName('Freepad')
-		self.setApplicationVersion('0.9.7')
+		self.setApplicationVersion('0.9.0')
 		self.setApplicationDisplayName('Freepad')
 		self.setStyle("fusion") # required
 		self.knownPads = {}
@@ -44,7 +38,6 @@ class FreepadApp(QApplication):
 		self.openedPads = {}
 		self.defaultKit = {}
 		self.defaultControls = {}
-		self.qsettings = QSettings('geomaticien.com', 'Freepad')
 		self.padname = None
 		# Read known pads
 		pdir = os.path.join(FREEPAD_PATH, "pads")
@@ -59,7 +52,7 @@ class FreepadApp(QApplication):
 					self.knownPads[mn] = pad
 					self.knownPadsNames.append(mn)
 				else:
-					print('midiname not found in ' + pad)
+					Debug.dbg('midiname not found in ' + pad)
 			f.close()
 		parser = argparse.ArgumentParser(
 			prog = 'freepad' if FREEPAD_IS_COMPILED else 'python -m pad',
@@ -68,12 +61,12 @@ class FreepadApp(QApplication):
 		parser.add_argument('model', nargs = '?', default = 'LPD8', help = ', '.join(['"{}"'.format(n) for n in self.knownPadsNames]))
 		parser.add_argument('-d', '--debug', help = tr('debug mode'), action='store_true', default = False)
 		args = parser.parse_args()
-		self.debug = args.debug
+		Debug.set(args.debug)
 		self.padname = args.model
 
 		# Load default kit and default controls
-		self._loadKit(self.defaultKit, self.qsettings.value('lastkit', self._get1stDefault('kits')))
-		self._loadKit(self.defaultControls, self.qsettings.value('lastcontrols', self._get1stDefault('controls')))
+		self._loadKit(self.defaultKit, Fsettings().get('lastkit', self._get1stDefault('kits')))
+		self._loadKit(self.defaultControls, Fsettings().get('lastcontrols', self._get1stDefault('controls')))
 
 		_openUI = False
 		if self.padname is None:
@@ -98,7 +91,7 @@ class FreepadApp(QApplication):
 				self.openUI(virtual_pad, '')
 				_openUI = True
 			else:
-				print('"' + self.padname + '" is not a known device.')
+				Debug.dbg('"' + self.padname + '" is not a known device.')
 				self._quit()
 
 		if _openUI:
@@ -112,7 +105,7 @@ class FreepadApp(QApplication):
 			self.mlc.deviceUnplugged.connect(self.deviceUnplugged)
 			self.mlcThread.start()
 		else:
-			print('No pads found.')
+			Debug.dbg('No pads found.')
 			self._quit()
 
 	def _get1stDefault(self, d):
@@ -151,11 +144,10 @@ class FreepadApp(QApplication):
 			self._quit()
 		else:
 			params = {'device': self.knownPads[mn],
-							'in_name': in_name,
-							'defaultKit': self.defaultKit,
-							'defaultControls': self.defaultControls,
-							'settings': self.qsettings,
-							'debug': self.debug}
+				'in_name': in_name,
+				'defaultKit': self.defaultKit,
+				'defaultControls': self.defaultControls
+			}
 			setattr(self, mn, FreepadWindow(params))
 			self.openedPads[mn] = getattr(self, mn)
 			self.openedPads[mn].setObjectName("Pads" + mn)

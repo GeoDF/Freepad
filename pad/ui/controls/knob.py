@@ -1,4 +1,4 @@
-from qtpy.QtCore import QLineF, QMetaObject, QRectF, QPointF, QSize, Qt, Signal
+from qtpy.QtCore import QLineF, QMetaObject, QRectF, QPointF, Qt, Signal
 from qtpy.QtWidgets import QComboBox, QDial, QStyleOptionSlider, QVBoxLayout, QWidget
 from qtpy.QtGui import QBrush, QColor, QRadialGradient, QPainter, QPen
 

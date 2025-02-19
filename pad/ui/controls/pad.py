@@ -3,7 +3,8 @@ from qtpy.QtWidgets import QColorDialog, QComboBox, QFrame, QGraphicsDropShadowE
 		QLineEdit, QPushButton, QSlider, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 from qtpy.QtGui import QColor
 
-from pad.ui.common import Creator, Spinput, tr, \
+from pad.freepad_settings import Fsettings
+from pad.ui.common import Creator, Debug, Spinput, tr, \
 	FREEPAD_BORD_COLOR,FREEPAD_LGRADIENT, FREEPAD_RGRADIENT
 
 class Pad(QWidget, Creator):
@@ -11,11 +12,11 @@ class Pad(QWidget, Creator):
 	sendNoteOff = Signal(int, int, int)
 	keyChanged = Signal(str, str)
 
-	def __init__(self, pad_id, settings, parent = None):
+	def __init__(self, pad_id, parent = None):
 		super().__init__(parent)
 		self.pad_id = pad_id
 		self.note = 0
-		self.noteStyle = int(settings.value('noteStyle', 1))
+		self.noteStyle = int(Fsettings.get('noteStyle', 1))
 		self.kit = {}
 		# Midi require values < 128, so colors are split into two bytes
 		self.off_red1 = 1
@@ -246,7 +247,7 @@ class Pad(QWidget, Creator):
 			self.setGraphicsEffect(shadow)
 			self.level.setVelocity(int(velocity))
 		except Exception as e:
-			self.parent().cprint('Error in Pad.lightOn: ' + str(e))
+			Debug.dbg('Error in Pad.lightOn: ' + str(e))
 
 	def lightOff(self):
 		try:

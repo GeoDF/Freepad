@@ -1,2 +1,1 @@
-
 from .freepad import FreepadWindow
