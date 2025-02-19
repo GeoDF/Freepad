@@ -82,8 +82,8 @@ jobs:
         id: checkout
         run: |
             set -e
-            # git fetch --tags > /dev/null 2>&1
-            git fetch --tags > /dev/null
+            # git fetch --tags-f  > /dev/null 2>&1
+            git fetch --tags -f > /dev/null
             latest=$(git describe --tags `git rev-list --tags --max-count=1`)
             echo "latest_tag=$latest" >> "$GITHUB_OUTPUT"
             echo "💡 The ${{ github.repository }} repository has been cloned to the runner. Last tag is $latest"
