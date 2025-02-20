@@ -2,13 +2,13 @@ import json, os, argparse
 from pathlib import Path
 
 from qtpy.QtWidgets import QApplication, QMessageBox
-from qtpy.QtCore import QSharedMemory, QThread
+from qtpy.QtCore import QSharedMemory
 
 from pad.path import FREEPAD_PATH, FREEPAD_IS_COMPILED
 from pad.ui.common import Debug, tr
 from pad.freepad_settings import Fsettings
 from pad.ui import FreepadWindow
-from pad.padio import Mid, MidiConnectionListener
+from pad.padio import Mid
 
 
 
@@ -69,22 +69,13 @@ class FreepadApp(QApplication):
 		self._loadKit(self.defaultControls, Fsettings().get('lastcontrols', self._get1stDefault('controls')))
 
 		_openUI = False
-		if self.padname is None:
-			# Read connected known pads and open UI
-			for in_name in Mid.get_input_names():
-				mn = Mid.shortMidiName(in_name)
-				if mn in self.knownPadsNames:
-					self.connectedPadsNames[mn] = in_name
-					self.openUI(mn, in_name)
-					_openUI = True
-		else:
-			for in_name in Mid.get_input_names():
-				mn = Mid.shortMidiName(in_name)
-				if mn == self.padname:
-					self.connectedPadsNames[mn] = in_name
-					self.openUI(mn, in_name)
-					_openUI = True
-					break
+		for in_name in Mid.get_input_names():
+			mn = Mid.shortMidiName(in_name)
+			if mn == self.padname:
+				self.connectedPadsNames[mn] = in_name
+				self.openUI(mn, in_name)
+				_openUI = True
+				break
 		if len(self.openedPads) == 0:
 			virtual_pad = self.padname.upper() if self.padname is not None else 'LPD8'
 			if virtual_pad in self.knownPadsNames:
@@ -94,17 +85,7 @@ class FreepadApp(QApplication):
 				Debug.dbg('"' + self.padname + '" is not a known device.')
 				self._quit()
 
-		if _openUI:
-		# Start a MidiConnectionListener in the background
-			self.mlcThread = QThread(self)
-			self.mlc = MidiConnectionListener(self.knownPadsNames)
-			self.mlc.moveToThread(self.mlcThread)
-			self.mlcThread.started.connect(self.mlc.run)
-			self.mlcThread.finished.connect(self.mlc.cancel)
-			self.mlc.devicePlugged.connect(self.devicePlugged)
-			self.mlc.deviceUnplugged.connect(self.deviceUnplugged)
-			self.mlcThread.start()
-		else:
+		if not _openUI:
 			Debug.dbg('No pads found.')
 			self._quit()
 
@@ -153,27 +134,11 @@ class FreepadApp(QApplication):
 			self.openedPads[mn].setObjectName("Pads" + mn)
 			self.openedPads[mn].destroyed.connect(self.cleanExit)
 			self.openedPads[mn].show()
-		
-
-	def devicePlugged(self, midiports):
-		in_midiname = midiports['in'][0]
-		out_midiname = midiports['out'][0]
-		for mn in self.openedPads:
-			if mn == Mid.shortMidiName(in_midiname):
-				self.openedPads[mn].plugged(in_midiname, out_midiname)
-
-	def deviceUnplugged(self, midiports):
-		in_midiname = midiports['in'][0]
-		#out_midiname = midiports['out'][0]
-		for mn in self.openedPads:
-			if mn == Mid.shortMidiName(in_midiname):
-				self.openedPads[mn].unplugged()
 
 	def cleanExit(self):
 		self.sharedM.attach()
 		self.sharedM.unlock()
 		self.sharedM.detach()
-		self.mlcThread.quit()
 
 	def _quit(self):
 		self.quit()

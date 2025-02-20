@@ -47,10 +47,9 @@ class Mid(object):
 class PadIO(QObject):
 	receivedMidi = Signal(str)
 
-	def __init__(self, pad, midiname : str, parent = None):
+	def __init__(self, pad, parent = None):
 		super().__init__(parent)
 		self.pad = pad
-		self.midiname = midiname
 		self.program = []
 		if 'program' in pad:
 			program = pad["program"]
@@ -70,16 +69,19 @@ class PadIO(QObject):
 		self.in_port = None
 		self.out_port = None
 		self.mtout_port = None
-		self.openDevicePorts(self._find_pad("in"), self._find_pad("out"))
+		self.midiListenerThread = QThread(self)
+		self.openDevicePorts()
 
-	def openDevicePorts(self, in_midiname, out_midiname):
+	def openDevicePorts(self):
+		in_midiname = self._find_pad_port("in")
+		out_midiname = self._find_pad_port("out")
 		if in_midiname in Mid.get_input_names():
 			self.in_port = Mid.open_input(in_midiname)
 		if out_midiname in Mid.get_output_names():
 			self.out_port = Mid.open_output(out_midiname)
 		if (self.in_port is not None) and (self.out_port is not None):
 			try:
-				self.midiListenerThread = QThread(self)
+				#self.midiListenerThread = QThread(self)
 				self.midiListener = MidiListener(self.in_port)
 				self.midiListener.moveToThread(self.midiListenerThread)
 				self.midiListener.gotMessage.connect(lambda msg: self.receivedMidi.emit(msg))
@@ -88,6 +90,8 @@ class PadIO(QObject):
 				self.isConnected = self.midiListenerThread.isRunning()
 			except Exception as e:
 				Debug.dbg('Error in openDevicePorts: ' + str(e))
+		else:
+			Debug.dbg('Unable to open "' + str(in_midiname) + '"')
 		MIDI_OUTPUT_PORT = Fsettings.get('midiOutputPort', tr('No MIDI output'))
 		try:
 			for name in Mid.get_output_names():
@@ -104,19 +108,21 @@ class PadIO(QObject):
 		self.mtout_port = Mid.open_output(port_name)
 
 	def closeDevicePorts(self):
-		try: 
-			self.midiListener.stop()
+		if getattr(self, 'midiListenerThread'):
+			self.midiListenerThread.quit()
+		try:
 			self.in_port.close()
 			self.out_port.close()
 			self.in_port = None
 			self.out_port = None
 		except Exception as e:
+			#Debug.dbg('Error in closeDevicePorts: ' + str(e))
 			pass
-			#print('Error in closeDevicePorts:' + str(e))
 		self.isConnected = False
 
-	def _find_pad(self, op):
-		if self.midiname == '':
+	def _find_pad_port(self, op):
+		midiname = self.pad['midiname']
+		if midiname == '':
 			return None
 		try:
 			if op == "in":
@@ -126,7 +132,7 @@ class PadIO(QObject):
 			else:
 				return None
 			for name in dev_names:
-					if self.midiname.lower() in name.lower():
+					if midiname.upper() in name.upper():
 							return name
 			return None
 		except Exception as e:
@@ -188,6 +194,7 @@ class MidiListener(QObject):
 
 	def run(self):
 		self.timer.start()
+		Debug.dbg('Started midi events listener on port "' + str(self.in_port.name) + '"')
 
 	def listenMessages(self):
 		for msg in self.in_port.iter_pending():
@@ -195,26 +202,28 @@ class MidiListener(QObject):
 				self.gotMessage.emit(str(msg))
 
 	def stop(self):
+		print('MidiListener.stop called')
 		self.timer.stop()
 		del self.timer
 		self.thread().quit()
 
 
 class MidiConnectionListener(QObject):
-	devicePlugged = Signal(dict)
-	deviceUnplugged  = Signal(dict)
+	devicePlugged = Signal()
+	deviceUnplugged  = Signal()
 
-	def __init__(self, knownPadsNames, parent = None):
+	def __init__(self, io, parent = None):
 		super().__init__(parent)
+		self.io = io
+		self.deviceName = io.pad['midiname']
 		self.timer = QTimer(self)
 		self.timer.setInterval(250)
 		self.timer.timeout.connect(self.listenMidiConnections)
 		self.in_names = Mid.get_input_names()
-		self.out_names = Mid.get_output_names()
-		self.knownPadsNames = knownPadsNames
 
 	def run(self):
 		self.timer.start()
+		Debug.dbg('Started connection listener for "' + str(self.deviceName) + '"')
 
 	def cancel(self):
 		self.timer.stop()
@@ -223,61 +232,17 @@ class MidiConnectionListener(QObject):
 		self.thread().quit()
 
 	def listenMidiConnections(self):
-		_changed = False
 		m_in = Mid.get_input_names()
-		m_out = Mid.get_output_names()
-		in_added, in_removed, out_added, out_removed = [], [], [], []
-		if m_in != self.in_names:
-			in_added, in_removed = self._compareLists(self.in_names, m_in)
-			self.in_names = m_in
-			_changed = True
-		if m_out != self.out_names:
-			out_added, out_removed = self._compareLists(self.out_names, m_out)
-			self.out_names = m_out
-			_changed = True
-		if _changed:
-			if (len(in_added) > 0) and (len(out_added)) > 0:
-				self.devicePlugged.emit({'in': in_added, 'out': out_added})
-			if len(in_removed) > 0 and len(out_removed) > 0:
-				self.deviceUnplugged.emit({'in': in_removed, 'out': out_removed})
-
-	def _compareLists(self, old, new):
-		new_set = sorted(new)
-		old_set = sorted(old)
-		added, deleted = [], []
-		i, j = 0, 0
-		j_max = len(old_set)
-		i_max = len(new_set)
-		while True:
-			if i == i_max and j == j_max:
-					return added, deleted
-					break
-			if j == j_max:
-					#added.append(new_set[i])
-					self._appendIfKnown(added, new_set[i])
-					i += 1
-					continue
-			if i == i_max:
-					#deleted.append(old_set[j])
-					self._appendIfKnown(deleted, old_set[j])
-					j += 1
-					continue
-			if new_set[i] < old_set[j]:
-					#added.append(new_set[i])
-					self._appendIfKnown(added, new_set[i])
-					i += 1
-					continue
-			if new_set[i] == old_set[j]:
-					i += 1
-					j += 1
-					continue
-			if new_set[i] > old_set[j]:
-					#deleted.append(old_set[j])
-					self._appendIfKnown(deleted, old_set[j])
-					j += 1
-					continue
-
-	def _appendIfKnown(self, lst : list, val : str):
-		if Mid.shortMidiName(val) in self.knownPadsNames:
-			lst.append(val)
+		if not m_in == self.in_names:
+			for device in m_in:
+				if Mid.shortMidiName(device) == self.deviceName.upper():
+					self.io.openDevicePorts()
+					self.in_names = Mid.get_input_names()
+					self.devicePlugged.emit()
+					return
+			for device in self.in_names:
+				if Mid.shortMidiName(device) == self.deviceName.upper():
+					self.io.closeDevicePorts()
+					self.deviceUnplugged.emit()
+		self.in_names = Mid.get_input_names()
 

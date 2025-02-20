@@ -1,6 +1,6 @@
 import os, json
 
-from qtpy.QtCore import QDir, QMetaObject, Qt, QTimer
+from qtpy.QtCore import QDir, QMetaObject, Qt, QThread,QTimer
 from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGridLayout, \
 	QHBoxLayout, QLabel, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QSpinBox, \
 	QStyle, QVBoxLayout, QWidget
@@ -19,7 +19,7 @@ from pad.ui.common import Creator, Debug, \
 	
 from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
-from pad.padio import PadIO
+from pad.padio import PadIO, MidiConnectionListener
 
 
 class FreepadWindow(QWidget, Creator):
@@ -32,10 +32,10 @@ class FreepadWindow(QWidget, Creator):
 		self.fontsize = '14px'
 		self.fontsize_small = '12px'
 
-		for p in ['device', 'in_name', 'defaultKit', 'defaultControls']:
+		for p in ['device', 'defaultKit', 'defaultControls']:
 			if p in params:
 				setattr(self, p, params[p])
-		self.io = PadIO(self.device, self.in_name)
+		self.io = PadIO(self.device)
 		try: 
 			self.io.receivedMidi.disconnect(self.receivedMidi)
 		except:
@@ -269,6 +269,16 @@ QToolTip {
 		self.mc.currentIndexChanged.connect(self.valueChanged)
 
 		QMetaObject.connectSlotsByName(self)
+
+		# Start a MidiConnectionListener in the background
+		self.mlcThread = QThread(self)
+		self.mlc = MidiConnectionListener(self.io)
+		self.mlc.moveToThread(self.mlcThread)
+		self.mlcThread.started.connect(self.mlc.run)
+		self.mlcThread.finished.connect(self.mlc.cancel)
+		self.mlc.devicePlugged.connect(self.plugged)
+		self.mlc.deviceUnplugged.connect(self.unplugged)
+		self.mlcThread.start()
 
 	def addStatusBar(self):
 		self.createObj(u'statusbar', QLabel())
@@ -568,6 +578,9 @@ QToolTip {
 
 	def closeEvent(self, event):
 		self.io.close()
+		self.io.deleteLater()
+		self.mlcThread.quit()
+		event.accept()
 
 	def program(self):
 		pgm = []
@@ -619,12 +632,10 @@ QToolTip {
 			self.padProgramChanges = []
 			self.padControlChanges = []
 
-	def plugged(self, in_midiname, out_midiname):
-		self.io.openDevicePorts(in_midiname, out_midiname)
-		if self.io.isConnected:
-			self.setEnabled(True)
-			self.retranslateUi()
-			self.getProgram('1') # LPD8 switch to program 4 when disconnected/connected again
+	def plugged(self):
+		self.setEnabled(True)
+		self.retranslateUi()
+		self.getProgram('1') # LPD8 switch to program 4 when disconnected/connected again
 
 		_DSARW = 'dontShowAgainReconnectionWarning'
 		if not Fsettings.get(_DSARW, False):
@@ -638,7 +649,6 @@ QToolTip {
 				Fsettings.set(_DSARW, True)
 
 	def unplugged(self):
-		self.io.closeDevicePorts()
 		self.retranslateUi()
 		self.setEnabled(False)
 
