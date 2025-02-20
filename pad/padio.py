@@ -1,7 +1,7 @@
 import mido
 import mido.backends.rtmidi
 
-from qtpy.QtCore import QObject, QThread, QTimer, Signal
+from qtpy.QtCore import QObject, QTimer, Signal
 
 from pad.freepad_settings import Fsettings
 from pad.ui.common import Debug, tr
@@ -46,6 +46,8 @@ class Mid(object):
 
 class PadIO(QObject):
 	receivedMidi = Signal(str)
+	devicePlugged = Signal()
+	deviceUnplugged  = Signal()
 
 	def __init__(self, pad, parent = None):
 		super().__init__(parent)
@@ -69,8 +71,45 @@ class PadIO(QObject):
 		self.in_port = None
 		self.out_port = None
 		self.mtout_port = None
-		self.midiListenerThread = QThread(self)
-		self.openDevicePorts()
+		self.in_names = [Mid.get_input_names()] # BEFORE starting mcTimer
+
+		# midi event
+		self.meTimer = QTimer(self)
+		self.meTimer.setInterval(8)
+		self.meTimer.timeout.connect(self.listenMessages)
+
+		# midi connection
+		self.mcTimer = QTimer(self)
+		self.mcTimer.setInterval(250)
+		self.mcTimer.timeout.connect(self.listenMidiConnections)
+		self.listenMidiConnections()
+		self.mcTimer.start()
+
+	def listenMessages(self):
+		if not self.in_port is None:
+			for msg in self.in_port.iter_pending():
+				if msg is not None:
+					self.receivedMidi.emit(str(msg))
+
+	def listenMidiConnections(self):
+		m_in = Mid.get_input_names()
+		if not m_in == self.in_names:
+			for device in m_in:
+				if Mid.shortMidiName(device) == self.pad['midiname'].upper():
+					self.openDevicePorts()
+					self.in_names = Mid.get_input_names()
+					self.meTimer.start()
+					self.isConnected = True
+					print('listenMidiConnections')
+					self.devicePlugged.emit()
+					return
+			for device in self.in_names:
+				if Mid.shortMidiName(device) == self.pad['midiname'].upper():
+					self.closeDevicePorts()
+					self.meTimer.stop()
+					self.isConnected = False
+					self.deviceUnplugged.emit()
+		self.in_names = Mid.get_input_names()
 
 	def openDevicePorts(self):
 		in_midiname = self._find_pad_port("in")
@@ -79,19 +118,6 @@ class PadIO(QObject):
 			self.in_port = Mid.open_input(in_midiname)
 		if out_midiname in Mid.get_output_names():
 			self.out_port = Mid.open_output(out_midiname)
-		if (self.in_port is not None) and (self.out_port is not None):
-			try:
-				#self.midiListenerThread = QThread(self)
-				self.midiListener = MidiListener(self.in_port)
-				self.midiListener.moveToThread(self.midiListenerThread)
-				self.midiListener.gotMessage.connect(lambda msg: self.receivedMidi.emit(msg))
-				self.midiListenerThread.started.connect(self.midiListener.run)
-				self.midiListenerThread.start()
-				self.isConnected = self.midiListenerThread.isRunning()
-			except Exception as e:
-				Debug.dbg('Error in openDevicePorts: ' + str(e))
-		else:
-			Debug.dbg('Unable to open "' + str(in_midiname) + '"')
 		MIDI_OUTPUT_PORT = Fsettings.get('midiOutputPort', tr('No MIDI output'))
 		try:
 			for name in Mid.get_output_names():
@@ -108,8 +134,7 @@ class PadIO(QObject):
 		self.mtout_port = Mid.open_output(port_name)
 
 	def closeDevicePorts(self):
-		if getattr(self, 'midiListenerThread'):
-			self.midiListenerThread.quit()
+		self.meTimer.stop()
 		try:
 			self.in_port.close()
 			self.out_port.close()
@@ -141,7 +166,7 @@ class PadIO(QObject):
 	def close(self):
 		self.closeDevicePorts()
 
-	# Reuest for the program n° nb. Response read by MidiListener and received by ui
+	# Request for the program n° nb
 	def getProgram(self, nb):
 		try:
 			data = self.pad['get_program'].replace('pid', str(nb)).split(",")
@@ -181,68 +206,3 @@ class PadIO(QObject):
 			m = mido.Message("control_change", channel = channel, control = cc, value = val)
 			self.mtout_port.send(m)
 			return str(m)[0:-7]
-
-class MidiListener(QObject):
-	gotMessage = Signal(str)
-
-	def __init__(self, in_port, parent = None):
-		super().__init__(parent)
-		self.in_port = in_port
-		self.timer = QTimer(self) # Using a timer preserve from freezing GUI
-		self.timer.setInterval(8)
-		self.timer.timeout.connect(self.listenMessages)
-
-	def run(self):
-		self.timer.start()
-		Debug.dbg('Started midi events listener on port "' + str(self.in_port.name) + '"')
-
-	def listenMessages(self):
-		for msg in self.in_port.iter_pending():
-			if msg is not None:
-				self.gotMessage.emit(str(msg))
-
-	def stop(self):
-		print('MidiListener.stop called')
-		self.timer.stop()
-		del self.timer
-		self.thread().quit()
-
-
-class MidiConnectionListener(QObject):
-	devicePlugged = Signal()
-	deviceUnplugged  = Signal()
-
-	def __init__(self, io, parent = None):
-		super().__init__(parent)
-		self.io = io
-		self.deviceName = io.pad['midiname']
-		self.timer = QTimer(self)
-		self.timer.setInterval(250)
-		self.timer.timeout.connect(self.listenMidiConnections)
-		self.in_names = Mid.get_input_names()
-
-	def run(self):
-		self.timer.start()
-		Debug.dbg('Started connection listener for "' + str(self.deviceName) + '"')
-
-	def cancel(self):
-		self.timer.stop()
-		del self.timer
-		self.deleteLater()
-		self.thread().quit()
-
-	def listenMidiConnections(self):
-		m_in = Mid.get_input_names()
-		if not m_in == self.in_names:
-			for device in m_in:
-				if Mid.shortMidiName(device) == self.deviceName.upper():
-					self.io.openDevicePorts()
-					self.in_names = Mid.get_input_names()
-					self.devicePlugged.emit()
-					return
-			for device in self.in_names:
-				if Mid.shortMidiName(device) == self.deviceName.upper():
-					self.io.closeDevicePorts()
-					self.deviceUnplugged.emit()
-		self.in_names = Mid.get_input_names()
-

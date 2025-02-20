@@ -1,6 +1,6 @@
 import os, json
 
-from qtpy.QtCore import QDir, QMetaObject, Qt, QThread,QTimer
+from qtpy.QtCore import QDir, QMetaObject, Qt, QTimer
 from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGridLayout, \
 	QHBoxLayout, QLabel, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QSpinBox, \
 	QStyle, QVBoxLayout, QWidget
@@ -19,7 +19,7 @@ from pad.ui.common import Creator, Debug, \
 	
 from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
-from pad.padio import PadIO, MidiConnectionListener
+from pad.padio import PadIO
 
 
 class FreepadWindow(QWidget, Creator):
@@ -36,6 +36,8 @@ class FreepadWindow(QWidget, Creator):
 			if p in params:
 				setattr(self, p, params[p])
 		self.io = PadIO(self.device)
+		self.io.devicePlugged.connect(self.plugged)
+		self.io.deviceUnplugged.connect(self.unplugged)
 		try: 
 			self.io.receivedMidi.disconnect(self.receivedMidi)
 		except:
@@ -269,16 +271,6 @@ QToolTip {
 		self.mc.currentIndexChanged.connect(self.valueChanged)
 
 		QMetaObject.connectSlotsByName(self)
-
-		# Start a MidiConnectionListener in the background
-		self.mlcThread = QThread(self)
-		self.mlc = MidiConnectionListener(self.io)
-		self.mlc.moveToThread(self.mlcThread)
-		self.mlcThread.started.connect(self.mlc.run)
-		self.mlcThread.finished.connect(self.mlc.cancel)
-		self.mlc.devicePlugged.connect(self.plugged)
-		self.mlc.deviceUnplugged.connect(self.unplugged)
-		self.mlcThread.start()
 
 	def addStatusBar(self):
 		self.createObj(u'statusbar', QLabel())
@@ -576,11 +568,8 @@ QToolTip {
 			val = getattr(ctl, varname[len(ctl.pad_id) + 2:])
 		return val
 
-	def closeEvent(self, event):
+	def close(self):
 		self.io.close()
-		self.io.deleteLater()
-		self.mlcThread.quit()
-		event.accept()
 
 	def program(self):
 		pgm = []
