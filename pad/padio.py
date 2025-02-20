@@ -100,7 +100,6 @@ class PadIO(QObject):
 					self.in_names = Mid.get_input_names()
 					self.meTimer.start()
 					self.isConnected = True
-					print('listenMidiConnections')
 					self.devicePlugged.emit()
 					return
 			for device in self.in_names:
