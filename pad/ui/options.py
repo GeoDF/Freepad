@@ -156,7 +156,7 @@ class FreepadOptionsWindow(QDialog, Creator):
 
 	def setNoteStyle(self, note_style):
 		Fsettings.set('noteStyle', int(note_style))
-		for line in self.fpw.device['layout']:
+		for line in self.fpw.device['layout']['main']:
 			for ctl in line:
 				if ctl[0:1] != 'p' or ctl == 'pid':
 					continue

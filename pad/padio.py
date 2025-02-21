@@ -34,14 +34,16 @@ class Mid(object):
 	def open_input(midiname):
 		try:
 			return mido.open_input(midiname, False)
-		except:
+		except Exception as e:
+			Debug.dbg('Unable to open ' + midiname + ': ' + str(e))
 			return None
 	
 	@staticmethod
 	def open_output(midiname):
 		try:
 			return mido.open_output(midiname, False)
-		except:
+		except Exception as e:
+			Debug.dbg('Unable to open ' + midiname + ': ' + str(e))
 			return None
 
 class PadIO(QObject):
@@ -84,6 +86,9 @@ class PadIO(QObject):
 		self.mcTimer.timeout.connect(self.listenMidiConnections)
 		self.listenMidiConnections()
 		self.mcTimer.start()
+
+		if not self.isConnected:
+			self.openDevicePorts() # Required for virtual pads ONLY (cannot open ports twice)
 
 	def listenMessages(self):
 		if not self.in_port is None:
@@ -172,19 +177,21 @@ class PadIO(QObject):
 			data = [int(h, 16) for h in data]
 		except Exception as e:
 			Debug.dbg('Bad "get_program" value in the JSON file: ' + str(e))
-		try:
-			self.out_port.send(mido.Message('sysex', data = data))
-		except Exception as e:
-			Debug.dbg('Unable to request program ' + str(nb) + ': ' + str(e))
+		if not self.out_port is None:
+			try:
+				self.out_port.send(mido.Message('sysex', data = data))
+			except Exception as e:
+				Debug.dbg('Unable to request program ' + str(nb) + ': ' + str(e))
 
 	def sendProgram(self, pid, program):
-		data = self.pad["send_program"].replace('pid', str(pid)).split(",")
-		program = data + program[1:]
-		for i in range(0, len(data)):
-			program[i] = int(data[i], 16)
-		m = mido.Message("sysex", data = program)
-		self.out_port.send(m)
-		return str(m)
+		if not self.out_port is None:
+			data = self.pad["send_program"].replace('pid', str(pid)).split(",")
+			program = data + program[1:]
+			for i in range(0, len(data)):
+				program[i] = int(data[i], 16)
+			m = mido.Message("sysex", data = program)
+			self.out_port.send(m)
+			return str(m)
 
 	def sendNoteOn(self, channel, note, velocity):
 		if channel in range(0,16) and note in range(0,128):

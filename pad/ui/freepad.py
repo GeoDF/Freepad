@@ -157,48 +157,26 @@ QToolTip {
 				self.pmc = 0
 		if 'knob' in self.device and 'mc' in self.device['knob']:
 				self.kmc = 0
-		if 'nb_programs' in self.device:
-			self.nbPrograms = int(self.device['nb_programs'])
 
 		# Main layout: hLayout + statusbar
 		self.createObj(u'vLayout', QVBoxLayout(self))
 		self.vLayout.setContentsMargins(0, 0, 0, 0)
 		self.vLayout.setSpacing(0)
 
+		# Horizontal layout
 		self.createObj(u'hLayout', QHBoxLayout())
 		self.hLayout.setContentsMargins(10, 10, 10, 10)
 		self.hLayout.setSpacing(10)
 
-		if self.nbPrograms > 0:
+		# Programs panel
+		if 'programs' in self.device['layout']:
 			self.createObj(u'vLayoutg', QVBoxLayout())
 			self.vLayoutg.setContentsMargins(0, 0, 0, 0)
 			self.vLayoutg.setSpacing(10)
-			for pg in range(1, int(self.device['nb_programs'] + 1)):
-				pgt = str(pg)
-				pglayout = Creator.createObj(self.vLayoutg, 'pgl' + pgt, QHBoxLayout())
-				self.programs.append(Creator.createObj(self.vLayoutg, 'pid' + pgt, Program(pgt)))
-				pgui = self.programs[pg - 1]
-				pgui.setupUi()
-				pgui.setEnabled(self.io.isConnected)
-				pglayout.addWidget(pgui, alignment = Qt.AlignmentFlag.AlignCenter)
-				self.vLayoutg.addLayout(pglayout)
-				self._controls['pid' + str(pg)] = pgui
-
-			self.createObj(u'hlToRam', QHBoxLayout())
-			self.createObj(u'btnToRam', QPushButton())
-			self.btnToRam.setStyleSheet('QPushButton{padding: 5px 20px 5px 20px;}')
-			self.btnToRam.setEnabled(self.io.isConnected)
-			hlspacerg = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-			hlspacerd = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-			self.hlToRam.addItem(hlspacerg)
-			self.hlToRam.addWidget(self.btnToRam)
-			self.hlToRam.addItem(hlspacerd)
-			self.vLayoutg.addLayout(self.hlToRam)
-			self.btnToRam.clicked.connect(self.sendToRam)
-
-			self.addAppButtons(self.vLayoutg)
+			self.addPrograms(self.vLayoutg)
 			self.hLayout.addLayout(self.vLayoutg)
 
+		# Pads and knobs layout
 		self.createObj(u'vLayoutd', QVBoxLayout())
 		self.vLayoutd.setContentsMargins(0, 0, 0, 0)
 		self.createObj(u'gLayout', QGridLayout())
@@ -206,7 +184,7 @@ QToolTip {
 		self.gLayout.setContentsMargins(0, 0, 0, 0)
 		self.gLayout.setSpacing(10)
 		l = 0
-		for line in self.device['layout']:
+		for line in self.device['layout']['main']:
 			c = 0
 			for ctl in line:
 				if ctl != '':
@@ -238,31 +216,23 @@ QToolTip {
 				c = c + 1
 			l = l + 1
 
+		# Bottom layout
+		c = 0
 		self.createObj(u'hLayoutBottom', QHBoxLayout())
 		self.hLayoutBottom.setContentsMargins(0, 0, 0, 0)
 		self.hLayoutBottom.setSpacing(10)
-		self.createObj(u'labelMC', QLabel())
-		self.hLayoutBottom.addWidget(self.labelMC)
-		self.createObj(u'mc', QComboBox())
-		self.mc.setMinimumWidth(60)
-		self.mc.setEditable(True)
-		self.mc.lineEdit().setReadOnly(True)
-		self.mc.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
-		for ch in range(1,17):
-			sp = '  ' if ch < 10 else ''
-			self.mc.addItem(sp + str(ch))
-		self.hLayoutBottom.addWidget(self.mc)
-		self._controls['mc'] = self.mc
-
-		self.lblAlert = QLabel()
-		self.lblAlert.setAlignment(Qt.AlignmentFlag.AlignCenter)
-		self.lblAlert.setStyleSheet('color: #ff2800;')
-		self.hLayoutBottom.addWidget(self.lblAlert)
-		self.hLayoutBottom.setStretch(2,1)
-		if self.nbPrograms == 0:
-			self.addAppButtons(self.hLayoutBottom)
-
+		if 'bottom' in self.device['layout']:
+			for ctl in self.device['layout']['bottom']:
+				match ctl:
+					case 'mc':
+						c += self.addGMC(self.hLayoutBottom)
+					case 'alert':
+						c += self.addAlert(self.hLayoutBottom, c)
+					case 'appButtons':
+						self.addAppButtons(self.hLayoutBottom)
+				#/match
 		self.vLayoutd.addLayout(self.hLayoutBottom)
+
 		self.hLayout.addLayout(self.vLayoutd)
 		self.vLayout.addLayout(self.hLayout)
 		# status bar
@@ -276,6 +246,39 @@ QToolTip {
 
 		QMetaObject.connectSlotsByName(self)
 
+	def addPrograms(self, layout):
+		for ctl in self.device['layout']['programs']:
+			ctlType = ctl.rstrip('0123456789')
+			match ctlType:
+				case 'pid':
+					ctlNum = ctl[len(ctlType):]
+					pglayout = Creator.createObj(layout, 'pgl' + ctlNum, QHBoxLayout())
+					self.programs.append(Creator.createObj(layout, ctl, Program(ctlNum)))
+					pgui = self.programs[int(ctlNum) - 1]
+					pgui.setupUi()
+					pgui.setEnabled(self.io.isConnected)
+					pglayout.addWidget(pgui, alignment = Qt.AlignmentFlag.AlignCenter)
+					layout.addLayout(pglayout)
+					self._controls[ctl] = pgui
+					self.nbPrograms += 1
+
+				case 'btnToRam':
+					self.createObj(u'hlToRam', QHBoxLayout())
+					self.createObj(u'btnToRam', QPushButton())
+					self.btnToRam.setStyleSheet('QPushButton{padding: 5px 20px 5px 20px;}')
+					self.btnToRam.setEnabled(self.io.isConnected)
+					hlspacerg = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+					hlspacerd = QSpacerItem(5, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+					self.hlToRam.addItem(hlspacerg)
+					self.hlToRam.addWidget(self.btnToRam)
+					self.hlToRam.addItem(hlspacerd)
+					layout.addLayout(self.hlToRam)
+					self.btnToRam.clicked.connect(self.sendToRam)
+
+				case 'appButtons':
+					self.addAppButtons(layout)
+			#/match
+
 	def addStatusBar(self):
 		self.createObj(u'statusbar', QLabel())
 		self.vLayout.addWidget(self.statusbar)
@@ -284,6 +287,29 @@ QToolTip {
 	def removeStatusBar(self):
 		self.showMidiMessages = False
 		self.vLayout.removeWidget(self.statusbar)
+
+	def addGMC(self, layout):
+		self.createObj(u'labelMC', QLabel())
+		self.hLayoutBottom.addWidget(self.labelMC)
+		self.createObj(u'mc', QComboBox())
+		self.mc.setMinimumWidth(60)
+		self.mc.setEditable(True)
+		self.mc.lineEdit().setReadOnly(True)
+		self.mc.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
+		for ch in range(1,17):
+			sp = '  ' if ch < 10 else ''
+			self.mc.addItem(sp + str(ch))
+		layout.addWidget(self.mc)
+		self._controls['mc'] = self.mc
+		return 2
+
+	def addAlert(self, layout, position):
+		self.lblAlert = QLabel()
+		self.lblAlert.setAlignment(Qt.AlignmentFlag.AlignCenter)
+		self.lblAlert.setStyleSheet('color: #ff2800;')
+		layout.addWidget(self.lblAlert)
+		layout.setStretch(position, 1)
+		return 1
 
 	def addAppButtons(self, layout):
 		self.createObj(u'tbLayout', QHBoxLayout())
@@ -344,6 +370,7 @@ QToolTip {
 				QApplication.restoreOverrideCursor()
 
 		except Exception as e:
+			QApplication.restoreOverrideCursor()
 			Debug.dbg('Unable to read ' + self.midiname + ' program from "' + filename + '": ' + str(e))
 
 	def _loadProgram(self, filename):
@@ -367,7 +394,7 @@ QToolTip {
 			self.setProgram(pgm)
 			self.unselPrograms()
 			# switch all lights off
-			for line in  self.device['layout']:
+			for line in  self.device['layout']['main']:
 				for ctlid in line:
 					if ctlid[0:1] == 'p':
 						self._controls[ctlid].lightOff()
@@ -389,7 +416,7 @@ QToolTip {
 	# return control names and keyboard keys
 	def _ctlVars(self):
 		pkn = []
-		for line in self.device['layout']:
+		for line in self.device['layout']['main']:
 			for control in line:
 				ctl = self._controls[control]
 				if isinstance(ctl, Pad):
@@ -417,7 +444,7 @@ QToolTip {
 		if self.showMidiMessages:
 			self.statusbar.setText(self.in_symbol + ' ' + msg[0:-7]) # without "time=0"
 
-	def warning(self, msg, detail =''):
+	def warning(self, msg, detail = ''):
 		self.lblAlert.setText(msg + '.')
 		Debug.dbg(msg + detail)
 		QTimer.singleShot(4000, lambda: self.lblAlert.setText(''))
@@ -616,9 +643,7 @@ QToolTip {
 	def unselPrograms(self):
 		if not self.settingProgram:
 			for p in range(1, self.nbPrograms + 1):
-				pgm = self.findChildren(QWidget, 'pid' + str(p))
-				if len(pgm) > 0:
-					pgm[0].unsel()
+				self._controls['pid' + str(p)].unsel()
 			self.padNotes = [] # reinit
 			self.padProgramChanges = []
 			self.padControlChanges = []
@@ -690,7 +715,7 @@ QToolTip {
 	def retranslateUi(self):
 		virtual = '' if self.io.isConnected else 'virtual '
 		self.setWindowTitle(tr(u'Freepad ' + virtual + self.midiname, None))
-		if self.nbPrograms > 0:
+		if getattr(self, 'btnToRam', False):
 			self.btnToRam.setText(tr(u'Send to RAM', None))
 		self.labelMC.setText(tr(u'Midi channel', None))
 
