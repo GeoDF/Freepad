@@ -10,6 +10,8 @@ from pad.ui.common import Creator, Debug, Spinput, tr, \
 class Pad(QWidget, Creator):
 	sendNoteOn = Signal(int, int, int)
 	sendNoteOff = Signal(int, int, int)
+	sendControlChange = Signal(int, int, int)
+	sendProgramChange = Signal(int, int)
 	keyChanged = Signal(str, str)
 
 	def __init__(self, pad_id, parent = None):
@@ -200,8 +202,8 @@ class Pad(QWidget, Creator):
 		self.spCC.valueChanged.connect(self.valueChanged)
 		self.spPC.valueChanged.connect(self.valueChanged)
 
-		self.btnNote.pressed.connect(self._sendNoteOn)
-		self.btnNote.released.connect(self._sendNoteOff)
+		self.btnNote.pressed.connect(self.noteOn)
+		self.btnNote.released.connect(self.noteOff)
 
 		QMetaObject.connectSlotsByName(self)
 		self.noteChanged(0)
@@ -262,15 +264,25 @@ str(128 * self.off_blue1 + self.off_blue2) + ');}'
 		except:
 			pass
 
-	def _sendNoteOn(self):
+	def noteOn(self):
 		self.isOn = True
 		self.sendNoteOn.emit(self.mc, self.note, self.level.defaultVelocity)
 		self.lightOn(self.level.defaultVelocity)
 
-	def _sendNoteOff(self):
+	def noteOff(self):
 		self.isOn = False
 		self.sendNoteOff.emit(self.mc, self.note, self.level.defaultVelocity)
 		self.lightOff()
+
+	def controlChange(self):
+		self.isOn = True
+		self.sendControlChange.emit(self.mc, self.spCC.value(), self.level.defaultVelocity)
+		self.lightOn(self.level.defaultVelocity)
+
+	def programChange(self):
+		self.isOn = True
+		self.sendProgramChange.emit(self.mc, self.spPC.value())
+		self.lightOn(self.level.defaultVelocity)
 
 	def chooseColor(self, col):
 		red = 128 * getattr(self, col + '_red1') + getattr(self, col + '_red1')

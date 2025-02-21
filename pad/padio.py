@@ -200,8 +200,16 @@ class PadIO(QObject):
 			self.mtout_port.send(m)
 			return str(m)[0:-7]
 
-	def sendControlChanged(self, channel, cc, val):
+	def sendControlChange(self, channel, cc, val):
 		if self.mtout_port is not None:
 			m = mido.Message("control_change", channel = channel, control = cc, value = val)
 			self.mtout_port.send(m)
 			return str(m)[0:-7]
+
+	def sendProgramChange(self, channel, pc):
+		if self.mtout_port is not None:
+			m = mido.Message("program_change", channel = channel, program = pc)
+			self.mtout_port.send(m)
+			return str(m)[0:-7]
+
+

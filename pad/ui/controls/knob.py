@@ -5,7 +5,7 @@ from qtpy.QtGui import QBrush, QColor, QRadialGradient, QPainter, QPen
 from pad.ui.common import Creator, Spinput, tr, FREEPAD_BORD_COLOR
 
 class Knob(QWidget, Creator):
-	sendControlChanged = Signal(int, int, int)
+	sendControlChange = Signal(int, int, int)
 	
 	def __init__(self, title, parent = None):
 		super().__init__(parent)
@@ -84,7 +84,7 @@ Knob #cbName QListView {
 		self.retranslateUi(Knob)
 		
 		self.cbName.currentIndexChanged.connect(self.ccChanged)
-		self.pot.valueChanged.connect(lambda v: self.sendControlChanged.emit(self.mc, self.spCC.value(), v))
+		self.pot.valueChanged.connect(lambda v: self.sendControlChange.emit(self.mc, self.spCC.value(), v))
 		QMetaObject.connectSlotsByName(self)
 		
 		return subcontrols

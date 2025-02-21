@@ -4,7 +4,7 @@ from qtpy.QtCore import QDir, QMetaObject, Qt, QTimer
 from qtpy.QtWidgets import QApplication, QCheckBox, QComboBox, QFileDialog, QGridLayout, \
 	QHBoxLayout, QLabel, QMessageBox, QPushButton, QSizePolicy, QSpacerItem, QSpinBox, \
 	QStyle, QVBoxLayout, QWidget
-from qtpy.QtGui import QIcon, QKeyEvent
+from qtpy.QtGui import QIcon
 
 from pad.path import FREEPAD_PATH, FREEPAD_ICON_PATH, imgUrl
 from pad.freepad_settings import Fsettings
@@ -21,7 +21,6 @@ from pad.ui.controls import Knob, Pad, Program
 from pad.ui.options import FreepadOptionsWindow
 from pad.padio import PadIO
 
-
 class FreepadWindow(QWidget, Creator):
 	def __init__(self, params):
 		super().__init__()
@@ -31,6 +30,9 @@ class FreepadWindow(QWidget, Creator):
 
 		self.fontsize = '14px'
 		self.fontsize_small = '12px'
+
+		self.shiftPressed = False
+		self.ctrlPressed = False
 
 		for p in ['device', 'defaultKit', 'defaultControls']:
 			if p in params:
@@ -219,10 +221,12 @@ QToolTip {
 						}
 						ctlClass.sendNoteOn.connect(self._sendNoteOn)
 						ctlClass.sendNoteOff.connect(self._sendNoteOff)
+						ctlClass.sendControlChange.connect(self._sendControlChange)
+						ctlClass.sendProgramChange.connect(self._sendProgramChange)
 						ctlClass.keyChanged.connect(self._padKeyChanged)
 					elif ctlType == 'k':
 						ctlClass = Knob(ctlNum)
-						ctlClass.sendControlChanged.connect(self._sendControlChanged)
+						ctlClass.sendControlChange.connect(self._sendControlChange)
 						params = {'midi_controls': self.defaultControls, \
 							'mc': self.kmc
 						}
@@ -492,8 +496,6 @@ QToolTip {
 			k = self.findChildren(QWidget, 'k' + str(knum))
 			if len(k) > 0:
 				k[0].setValue(value)
-		else:
-			self.warning('Cannot retrieve knob with control changes ' + str(self.padControlChanges), ' for CC ' + str(control))
 
 	def _midiProgramChange(self, channel, program):
 		padnum = self._padFromProgramChange(program)
@@ -665,10 +667,17 @@ QToolTip {
 		if self.showMidiMessages and msg is not None:
 			self.statusbar.setText(self.out_symbol + ' ' + msg)
 
-	def _sendControlChanged(self, mc, cc, val):
+	def _sendControlChange(self, mc, cc, val):
 		if mc == 16:
 			mc = self.mc.currentIndex()
-		msg = self.io.sendControlChanged(mc, cc, val)
+		msg = self.io.sendControlChange(mc, cc, val)
+		if self.showMidiMessages and msg is not None:
+			self.statusbar.setText(self.out_symbol + ' ' + msg)
+
+	def _sendProgramChange(self, mc, pc):
+		if mc == 16:
+			mc = self.mc.currentIndex()
+		msg = self.io.sendProgramChange(mc, pc)
 		if self.showMidiMessages and msg is not None:
 			self.statusbar.setText(self.out_symbol + ' ' + msg)
 
@@ -686,16 +695,26 @@ QToolTip {
 		self.labelMC.setText(tr(u'Midi channel', None))
 
 	def keyPressEvent(self, event):
-		self._keyEvent(event, '_sendNoteOn')
+		self.shiftPressed = (event.modifiers() & Qt.KeyboardModifier.ShiftModifier == Qt.KeyboardModifier.ShiftModifier)
+		self.ctrlPressed = (event.modifiers() & Qt.KeyboardModifier.ControlModifier == Qt.KeyboardModifier.ControlModifier)
+		if not self.shiftPressed and not self.ctrlPressed:
+			self._keyEvent(event, 'noteOn')
+		elif self.shiftPressed:
+			self._keyEvent(event, 'programChange')
+		elif self.ctrlPressed:
+			self._keyEvent(event, 'controlChange')
 
 	def keyReleaseEvent(self, event):
-		self._keyEvent(event, '_sendNoteOff')
+		self._keyEvent(event, 'noteOff')
 
 	def _keyEvent(self, event, callback):
-		if isinstance(event, QKeyEvent) and not event.isAutoRepeat() and self.hasFocus():
-			key = event.text().lower()
-			if key in self.padKeymap.values():
-				for pad_id in [pad_id for pad_id, k in self.padKeymap.items() if k == key]:
-					pads = self.findChildren(QWidget, 'p' + pad_id)
-					if len(pads) > 0:
-							getattr(pads[0], callback)()
+		if not event.isAutoRepeat() and self.hasFocus():
+			kc = event.key()
+			if kc in range(0, 256):
+				key = chr(kc).lower()
+				if key in self.padKeymap.values():
+					for pad_id in [pad_id for pad_id, k in self.padKeymap.items() if k == key]:
+						getattr(self._controls['p' + pad_id], callback)()
+
+
+
