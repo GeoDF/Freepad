@@ -18,3 +18,4 @@ Features:
 
 Help and more infos in wiki : https://github.com/GeoDF/Freepad/wiki
 
+Downloads : https://github.com/GeoDF/Freepad/releases
